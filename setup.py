@@ -18,6 +18,7 @@ setup(
     install_requires=[
         'pandas'
     ],
+    test_suite='tests',
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',

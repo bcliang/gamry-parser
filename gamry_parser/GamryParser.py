@@ -58,7 +58,6 @@ class GamryParser:
         pos = 0
         with open(self.fname, 'r', encoding='utf8', errors='ignore') as f:
             cur_line = f.readline().split('\t')
-            #while not cur_line[0].startswith('CURVE'):
             while not re.search(r'CURVE', cur_line[0]):
                 if f.tell() == pos:
                     break
@@ -109,7 +108,6 @@ class GamryParser:
                 fid.readline()
                 curve = ''
                 cur_line = fid.readline().strip().split()
-                #while not cur_line[0].startswith('CURVE'):
                 while not re.search(r'CURVE', cur_line[0]):
                     curve += '\t'.join(cur_line)
                     curve += '\n'
