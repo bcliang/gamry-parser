@@ -4,32 +4,36 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gamry-parser.svg)
 [![PyPI - License](https://img.shields.io/pypi/l/gamry-parser.svg)](./LICENSE)
 
-Python package for parsing the contents of Gamry EXPLAIN data (DTA) files
+Python package for parsing the contents of Gamry EXPLAIN data (DTA) files. This package is meant to convert flat-file EXPLAIN data into pandas DataFrames for easy analysis and visualization.
 
-## Installation
+## Getting Started
 
-### Requirements
+### Dependencies
+
 * pandas
 
-### Package from PyPi
+### Installation
+
+#### Package from PyPi
+
 ```bash
 $ pip install gamry-parser
 ```
 
-### Local Installation
+#### Local Installation
 
 1. Check out the latest code:
 ```bash
 $ git clone git@github.com:bcliang/gamry-parser.git
 ```
-2. Use setuptools to install the package and register it with pip
+2. Use setuptools to install the package
 ```bash
 $ python setup.py install
 ```
 
-## Usage
+### Usage
 
-### Generic GamryParser Example
+#### GamryParser Example
 
 The following snippet loads a DTA file and prints to screen: (1) experiment type, (2) # of curves, and (3) a random curve in the form of a pandas DataFrame.
 
@@ -49,7 +53,7 @@ print("showing curve #{}".format(curve_index))
 print(gp.get_curve_data(curve_index))
 ```
 
-### ChronoAmperometry Example
+#### ChronoAmperometry Example
 
 The `ChronoAmperometry` class is a subclass of `GamryParser`. Executing the method `get_curve_data()` will return a DataFrame with three columns: (1) `T`, (2) `Vf`, and (3) `Im`
 
@@ -65,17 +69,31 @@ ca.load(filename=file)
 print(ca.get_curve_data())
 ```
 
+#### Additional Examples
+
 Similar procedure should be followed for using the `gamry_parser.CyclicVoltammetry()` and `gamry_parser.Impedance()` parser subclasses. Take a look in `tests/` for some additional usage examples.
 
 ## Development
 
-### Roadmap
+### Project Tree
 
-This package is meant to convert flat-file EXPLAIN data into pandas DataFrames for easy analysis and visualization.
+  .
+  ├── gamry_parser              # source files
+  │   ├── ...          
+  │   ├── chronoa.py            # ChronoAmperometry() experiment parser
+  │   ├── cv.py                 # CyclicVoltammetry() experiment parser
+  │   ├── eispot.py             # Impedance() experiment parser
+  │   └── gamryparser.py        # GamryParser: generic DTA file parser
+  ├── tests                     # unit tests and test data
+  |   └── ...
+  ├── setup.py                  # setuptools configuration
+  └── ...                
+
+### Roadmap
 
 Documentation. Loading of data is straightforward, and hopefully the examples provided in this README provide enough context for any of the subclasses to be used/extended.
 
-In the future, it would be nice to add support for things like equivalent circuit modeling, though at the moment there are some other projects focused specifically on the models and fitting of EIS data (e.g. [kbknudsen/PyEIS](https://github.com/kbknudsen/PyEIS), [ECSHackWeek/impedance.py](https://github.com/ECSHackWeek/impedance.py)).
+In the future, it would be nice to add support for things like equivalent circuit modeling, though at the moment there are other projects focused specifically on building out models and fitting EIS data (e.g. [kbknudsen/PyEIS](https://github.com/kbknudsen/PyEIS), [ECSHackWeek/impedance.py](https://github.com/ECSHackWeek/impedance.py)).
 
 ### Tests
 
@@ -112,3 +130,19 @@ $ rm -rf dist
 $ python setup.py sdist
 $ twine upload dist/*
 ```
+
+### Code Guidelines
+
+* PEP8 via `pylint` or `flake8`
+* [GitHub flow](https://guides.github.com/introduction/flow/) for proposing changes (i.e. create a feature branch and submit a PR against the master branch).
+* Tests: > 80% line coverage
+
+### Versioning
+
+[SemVer](http://semver.org/) for versioning.
+1. Matching major version numbers are guarenteed to work together.
+2. Any change to the public API (breaking change) will increase a major version.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
