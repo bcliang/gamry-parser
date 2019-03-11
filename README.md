@@ -76,7 +76,7 @@ Similar procedure should be followed for using the `gamry_parser.CyclicVoltammet
 ## Development
 
 ### Project Tree
-
+```
   .
   ├── gamry_parser              # source files
   │   ├── ...          
@@ -88,6 +88,7 @@ Similar procedure should be followed for using the `gamry_parser.CyclicVoltammet
   |   └── ...
   ├── setup.py                  # setuptools configuration
   └── ...                
+```
 
 ### Roadmap
 
@@ -121,16 +122,6 @@ gamry_parser\version.py                 1      0   100%
 TOTAL                                 131      1    99%
 ```
 
-### Publishing
-
-Use setuptools to build, twine to publish to pypi.
-
-```bash
-$ rm -rf dist
-$ python setup.py sdist
-$ twine upload dist/*
-```
-
 ### Code Guidelines
 
 * PEP8 via `pylint` or `flake8`
@@ -143,6 +134,16 @@ $ twine upload dist/*
 1. Matching major version numbers are guarenteed to work together.
 2. Any change to the public API (breaking change) will increase a major version.
 
+### Publishing
+
+Use setuptools to build, twine to publish to pypi.
+
+```bash
+$ rm -rf dist
+$ python setup.py sdist
+$ twine upload dist/*
+```
+
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
