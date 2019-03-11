@@ -130,12 +130,12 @@ TOTAL                           136      1    99%
 
 * PEP8 via `pylint` or `flake8`
 * [GitHub flow](https://guides.github.com/introduction/flow/) for proposing changes (i.e. create a feature branch and submit a PR against the master branch).
-* Tests: > 80% line coverage
+* Tests: Maintain > 80% line coverage, per file
 
 ### Versioning
 
 [SemVer](http://semver.org/) for versioning.
-1. Matching major version numbers are guarenteed to work together.
+1. Matching major version numbers are guaranteed to work together.
 2. Any change to the public API (breaking change) will increase a major version.
 
 ### Publishing
