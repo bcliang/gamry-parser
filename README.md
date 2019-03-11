@@ -33,6 +33,10 @@ $ python setup.py install
 
 ### Usage
 
+```python
+$ python usage.py
+```
+
 #### GamryParser Example
 
 The following snippet loads a DTA file and prints to screen: (1) experiment type, (2) # of curves, and (3) a random curve in the form of a pandas DataFrame.
@@ -110,16 +114,16 @@ Latest output:
 
 ```bash
 $ coverage report -m
-Name                                Stmts   Miss  Cover   Missing
------------------------------------------------------------------
-gamry_parser\ChronoAmperometry.py      16      0   100%
-gamry_parser\CyclicVoltammetry.py      11      0   100%
-gamry_parser\GamryParser.py            96      1    99%   63
-gamry_parser\Impedance.py               6      0   100%
-gamry_parser\__init__.py                1      0   100%
-gamry_parser\version.py                 1      0   100%
------------------------------------------------------------------
-TOTAL                                 131      1    99%
+Name                          Stmts   Miss  Cover   Missing
+-----------------------------------------------------------
+gamry_parser\__init__.py          5      0   100%
+gamry_parser\chronoa.py          16      0   100%
+gamry_parser\cv.py               12      0   100%
+gamry_parser\eispot.py            6      0   100%
+gamry_parser\gamryparser.py      96      1    99%   63
+gamry_parser\version.py           1      0   100%
+-----------------------------------------------------------
+TOTAL                           136      1    99%
 ```
 
 ### Code Guidelines
