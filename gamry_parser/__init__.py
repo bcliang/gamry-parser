@@ -1,2 +1,5 @@
 from .version import __version__
-from .GamryParser import GamryParser
+from .gamryparser import GamryParser
+from .chronoa import ChronoAmperometry
+from .cv import CyclicVoltammetry
+from .eispot import Impedance
