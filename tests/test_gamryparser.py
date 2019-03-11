@@ -1,5 +1,5 @@
 import pandas as pd
-from gamry_parser import GamryParser as parser
+import gamry_parser as parser
 import unittest
 
 class TestGamryParser(unittest.TestCase):
