@@ -33,7 +33,7 @@ $ python setup.py install
 
 ### Usage
 
-```python
+```bash
 $ python usage.py
 ```
 
