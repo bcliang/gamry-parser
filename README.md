@@ -33,6 +33,8 @@ $ python setup.py install
 
 ### Usage
 
+The provided Usage example loads a CV DTA file two ways, and demonstrates the utility of custom functions within the CyclicVoltammetry subclass (`get_v_range`, `get_scan_rate`)
+
 ```bash
 $ python usage.py
 ```
@@ -75,7 +77,7 @@ print(ca.get_curve_data())
 
 #### Additional Examples
 
-Similar procedure should be followed for using the `gamry_parser.CyclicVoltammetry()` and `gamry_parser.Impedance()` parser subclasses. Take a look in `tests/` for some additional usage examples.
+Similar procedure should be followed for using the `gamry_parser.CyclicVoltammetry()` and `gamry_parser.Impedance()` parser subclasses. Take a look at `usage.py` and in `tests/` for some additional usage examples.
 
 ## Development
 
@@ -96,7 +98,7 @@ Similar procedure should be followed for using the `gamry_parser.CyclicVoltammet
 
 ### Roadmap
 
-Documentation. Loading of data is straightforward, and hopefully the examples provided in this README provide enough context for any of the subclasses to be used/extended.
+Documentation! Loading of data is straightforward, and hopefully the examples provided in this README provide enough context for any of the subclasses to be used/extended.
 
 In the future, it would be nice to add support for things like equivalent circuit modeling, though at the moment there are other projects focused specifically on building out models and fitting EIS data (e.g. [kbknudsen/PyEIS](https://github.com/kbknudsen/PyEIS), [ECSHackWeek/impedance.py](https://github.com/ECSHackWeek/impedance.py)).
 
