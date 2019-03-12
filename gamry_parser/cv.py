@@ -4,8 +4,10 @@ class CyclicVoltammetry(parser.GamryParser):
     "Load an EXPLAIN file for a Cyclic Voltammetry experiment."
     def get_v_range(self):
         assert self.loaded,  'DTA file not loaded. Run CyclicVoltammetry.load()'
-        vals = self.curves[0]['Vf']
-        return min(vals), max(vals)
+        assert 'VLIMIT1' in self.header.keys(), 'DTA header file missing VLIMIT1 specification'
+        assert 'VLIMIT2' in self.header.keys(), 'DTA header file missing VLIMIT2 specification'
+        
+        return self.header['VLIMIT1'], self.header['VLIMIT2']
 
     def get_curve_data(self, curve = 1):
         "Overloaded function returns CV-relevant data to the user"

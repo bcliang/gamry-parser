@@ -63,7 +63,7 @@ class GamryParser:
                     break
 
                 pos = f.tell()
-                cur_line = f.readline().split('\t')
+                cur_line = f.readline().strip().split('\t')
                 if len(cur_line[0]) == 0:
                     pass
 
