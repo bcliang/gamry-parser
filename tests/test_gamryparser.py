@@ -2,6 +2,7 @@ import pandas as pd
 import gamry_parser as parser
 import unittest
 
+
 class TestGamryParser(unittest.TestCase):
     def setUp(self):
         pass
@@ -17,7 +18,7 @@ class TestGamryParser(unittest.TestCase):
     def test_read_header(self):
         gp = parser.GamryParser(filename='tests/cv_data.dta')
         blob, count = gp.read_header()
-        self.assertEqual(count, 517)
+        self.assertEqual(count, 660)
         self.assertEqual(gp.header, blob)
         self.assertEqual(gp.header['DATE'], '3/6/2019')
         self.assertEqual(gp.header['CHECKPSTAT'], 'potentiostat-id')
