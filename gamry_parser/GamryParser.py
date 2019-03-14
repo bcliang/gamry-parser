@@ -3,8 +3,10 @@ import datetime
 import re
 import os
 
+
 class GamryParser:
-    "Generic Parser for data files in Gamry EXPLAIN format (*.dta)."
+    """Load experiment data generated in Gamry EXPLAIN format."""
+
     def __init__(self, filename=None):
         self.fname = filename
         self.header = dict()
@@ -14,7 +16,15 @@ class GamryParser:
         self.curve_count = 0
 
     def load(self, filename=None):
-        "save experiment information to \"header\", then save curve data to \"curves\""
+        """save experiment information to \"header\", then save curve data to \"curves\"
+
+        Args:
+            filename (str, optional): file containing EXPLAIN-formatted data. defaults to None.
+        Returns:
+            None
+
+        """
+
         if filename is not None:
             # reset
             self.__init__(filename)
@@ -28,33 +38,57 @@ class GamryParser:
         self.loaded = True
 
     def get_curve_count(self):
-        "return the number of loaded curves"
+        """return the number of loaded curves"""
         assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
         return self.curve_count
 
-    def get_curve_data(self, curve = 1):
-        "return the data from a specific curve in the form of a pandas.DataFrame()"
-        assert self.loaded,  'DTA file not loaded. Run GamryParser.load()'
+    def get_curve_data(self, curve=1):
+        """retrieve relevant experimental data
+
+        Args:
+            curve (int, optional): curve number to return. Defaults to 1.
+
+        Returns:
+            pandas.DataFrame: (multiple columns)
+
+        """
+        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
         assert curve <= self.curve_count, 'Invalid curve ({}). File contains {} total curves.'.format(curve, self.curve_count)
         return self.curves[curve - 1]
 
     def get_curves(self):
-        "return all loaded curves as a list of pandas DataFrames"
-        assert self.loaded,  'DTA file not loaded. Run GamryParser.load()'
+        """return all loaded curves as a list of pandas DataFrames"""
+        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
         return self.curves
 
     def get_header(self):
-        "return the experiment configuration dictionary"
-        assert self.loaded,  'DTA file not loaded. Run GamryParser.load()'
+        """return the experiment configuration dictionary"""
+        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
         return self.header
 
     def get_experiment_type(self):
-        "return the type of experiment that was loaded (TAG)"
-        assert self.loaded,  'DTA file not loaded. Run GamryParser.load()'
+        """retrieve the type of experiment that was loaded (TAG)
+
+        Args:
+            None
+        Returns:
+            str: Experiment Type (EXPALIN-TAG)
+
+        """
+        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
         return self.header['TAG']
 
     def read_header(self):
-        "helper function to grab data from the EXPLAIN file header, which contains the loaded experiment's configuration"
+        """helper function to grab data from the EXPLAIN file header, which contains the loaded experiment's configuration
+
+        Args:
+            None
+        Returns:
+            header (dict): experimental header data in key-value pairs.
+            length (int): length of header text, in # of bytes
+
+        """
+
         pos = 0
         with open(self.fname, 'r', encoding='utf8', errors='ignore') as f:
             cur_line = f.readline().split('\t')
@@ -91,13 +125,21 @@ class GamryParser:
         return self.header, self.header_length
 
     def read_curves(self):
-        "helper function to iterate through curves in a dta file and save as individual dataframes"
+        """helper function to iterate through curves in a dta file and save as individual dataframes
+
+        Args:
+            None
+        Returns:
+            curves (list): list of DataFrames, each element representing an individual curve of experimental data.
+
+        """
+
         assert len(self.header) > 0, "Must read file header before curves can be extracted."
         self.curves = []
         self.curve_count = 0
 
         with open(self.fname, 'r', encoding='utf8', errors='ignore') as f:
-            f.seek(self.header_length) # skip to end of header
+            f.seek(self.header_length)  # skip to end of header
 
             def read_curve_data(fid):
                 pos = 0
@@ -116,7 +158,7 @@ class GamryParser:
                     if fid.tell() == pos:
                         break
 
-                curve = curve[:-1] # remove trailing newline
+                curve = curve[:-1]  # remove trailing newline
                 return keys, curve
 
             while True:
