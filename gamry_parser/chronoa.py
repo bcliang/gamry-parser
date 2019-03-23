@@ -65,7 +65,7 @@ class ChronoAmperometry(parser.GamryParser):
         assert self.loaded, 'DTA file not loaded. Run ChronoAmperometry.load()'
         return len(self.curves[curve - 1].index)
 
-    def load(self):
+    def load(self, filename=None):
         """ run the parser to load the experimental data from file
 
         Args:
@@ -76,7 +76,7 @@ class ChronoAmperometry(parser.GamryParser):
 
         """
 
-        super().load()
+        super().load(filename)
         if self.to_timestamp:
             "we want data returned with timestamps instead of relative time"
             start_time = pd.to_datetime(self.header['DATE'] + ' ' + self.header['TIME'])  # start time
