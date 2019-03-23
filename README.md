@@ -146,7 +146,8 @@ Use setuptools to build, twine to publish to pypi.
 
 ```bash
 $ rm -rf dist
-$ python setup.py sdist
+$ python setup.py build
+$ python setup.py sdist bdist_wheel
 $ twine upload dist/*
 ```
 
