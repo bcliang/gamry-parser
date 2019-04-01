@@ -75,6 +75,13 @@ ca.load(filename=file)
 print(ca.get_curve_data())
 ```
 
+#### Demos
+
+ipython notebook demonstration scripts are included in the `demo` folder.
+
+- `notebook_gamry_parser.ipynb`: Simple example loading data from ChronoA experiment output. Instead of `gamry_parser.GamryParser()`, the parser could be instantiated with `gamry_parser.ChronoAmperometry()`
+- `notebook_cyclicvoltammetry.ipynb`: Example loading data from a CV (cyclic voltammetry) experiment output. Uses the `gamry_parser.CyclicVoltammetry()` subclass.
+
 #### Additional Examples
 
 Similar procedure should be followed for using the `gamry_parser.CyclicVoltammetry()` and `gamry_parser.Impedance()` parser subclasses. Take a look at `usage.py` and in `tests/` for some additional usage examples.
