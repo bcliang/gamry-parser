@@ -2,6 +2,7 @@ import pandas as pd
 import datetime
 import re
 import os
+import locale
 
 
 class GamryParser:
@@ -14,6 +15,8 @@ class GamryParser:
         self.loaded = False
         self.curves = []
         self.curve_count = 0
+        self.curve_units = dict()
+        self.ocv_curve = False
 
     def load(self, filename=None):
         """save experiment information to \"header\", then save curve data to \"curves\"
@@ -42,19 +45,19 @@ class GamryParser:
         assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
         return self.curve_count
 
-    def get_curve_data(self, curve=1):
+    def get_curve_data(self, curve=0):
         """retrieve relevant experimental data
 
         Args:
-            curve (int, optional): curve number to return. Defaults to 1.
+            curve (int, optional): curve number to return. Defaults to 0.
 
         Returns:
             pandas.DataFrame: (multiple columns)
 
         """
         assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
-        assert curve <= self.curve_count, 'Invalid curve ({}). File contains {} total curves.'.format(curve, self.curve_count)
-        return self.curves[curve - 1]
+        assert curve < self.curve_count, 'Invalid curve ({}). File contains {} total curves.'.format(curve, self.curve_count)
+        return self.curves[curve]
 
     def get_curves(self):
         """return all loaded curves as a list of pandas DataFrames"""
@@ -92,7 +95,7 @@ class GamryParser:
         pos = 0
         with open(self.fname, 'r', encoding='utf8', errors='ignore') as f:
             cur_line = f.readline().split('\t')
-            while not re.search(r'CURVE', cur_line[0]):
+            while not re.search(r'^CURVE', cur_line[0]):
                 if f.tell() == pos:
                     break
 
@@ -106,7 +109,7 @@ class GamryParser:
                     if cur_line[1] in ['LABEL', 'PSTAT']:
                         self.header[cur_line[0]] = cur_line[2]
                     elif cur_line[1] in ['QUANT', 'IQUANT', 'POTEN']:
-                        self.header[cur_line[0]] = float(cur_line[2])
+                        self.header[cur_line[0]] = locale.atof(cur_line[2]) # locale-friendly alternative to float
                     elif cur_line[1] in ['IQUANT', 'SELECTOR']:
                         self.header[cur_line[0]] = int(cur_line[2])
                     elif cur_line[1] in ['TOGGLE']:
@@ -114,11 +117,22 @@ class GamryParser:
                     elif cur_line[1] == 'TWOPARAM':
                         self.header[cur_line[0]] = {
                             'enable': cur_line[2] == 'T',
-                            'start': float(cur_line[3]),
-                            'finish': float(cur_line[4])
+                            'start': locale.atof(cur_line[3]), # locale-friendly alternative to float
+                            'finish': locale.atof(cur_line[4]) # locale-friendly alternative to float
                         }
                     elif cur_line[0] == 'TAG':
                         self.header['TAG'] = cur_line[1]
+                    elif cur_line[0] == 'NOTES':
+                        n_notes = int(cur_line[2])
+                        note = ''
+                        for i in range(n_notes):
+                            note += f.readline().strip()+'\n'
+                        self.header[cur_line[0]] = note
+                    elif cur_line[0] == 'OCVCURVE':
+                        n_points = int(cur_line[2])
+                        print('OCV curve found and not processed')
+                        self.ocv_curve = True
+                        
 
             self.header_length = f.tell()
 
@@ -145,11 +159,13 @@ class GamryParser:
                 pos = 0
                 keys = fid.readline().strip().split('\t')
                 if len(keys) <= 1:
-                    return [], ''
+                    return [], [], ''
 
-                fid.readline()
+                units = fid.readline().strip().split('\t')
+                
                 curve = ''
                 cur_line = fid.readline().strip().split()
+                
                 while not re.search(r'CURVE', cur_line[0]):
                     curve += '\t'.join(cur_line)
                     curve += '\n'
@@ -159,18 +175,36 @@ class GamryParser:
                         break
 
                 curve = curve[:-1]  # remove trailing newline
-                return keys, curve
+                
+                return keys, units, curve
 
             while True:
-                curve_keys, curve_vals = read_curve_data(f)
+                curve_keys, temp_units, curve_vals = read_curve_data(f)
+
                 if len(curve_vals) == 0:
                     break
 
                 temp = pd.DataFrame([x.split('\t') for x in curve_vals.split('\n')])
                 temp.columns = curve_keys
                 temp.set_index(curve_keys[0], inplace=True)
-                temp = temp.apply(pd.to_numeric, errors='ignore')
+
+                for key in curve_keys:
+                    nonnumeric_keys = ['Pt','Over']
+                    if key not in nonnumeric_keys:
+#                        print(key)
+#                        print(temp[key])
+                        temp[key] = temp[key].apply(locale.atof)
+
+                if not bool(self.curve_units.items()):
+                    for key, unit in zip(curve_keys, temp_units):
+                        self.curve_units[key] = unit
+                else:
+                    for key, unit in zip(curve_keys, temp_units):
+                        assert self.curve_units[key] == unit, 'Unit mismatch found!'
+                        
+
                 self.curves.append(temp)
+#                self.curve_units.append(temp_units)
                 self.curve_count += 1
 
         return self.curves

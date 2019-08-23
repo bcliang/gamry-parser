@@ -36,11 +36,11 @@ class CyclicVoltammetry(parser.GamryParser):
         assert 'SCANRATE' in self.header.keys(), 'DTA header file missing SCANRATE specification'
         return self.header['SCANRATE']
 
-    def get_curve_data(self, curve=1):
+    def get_curve_data(self, curve=0):
         """ retrieve relevant cyclic voltammetry experimental data
 
         Args:
-            curve (int, optional): curve number to return. Defaults to 1.
+            curve (int, optional): curve number to return. Defaults to 0.
 
         Returns:
             pandas.DataFrame:
@@ -49,6 +49,8 @@ class CyclicVoltammetry(parser.GamryParser):
 
         """
         assert self.loaded, 'DTA file not loaded. Run CyclicVoltammetry.load()'
-        assert curve <= self.curve_count, 'Invalid curve ({}). File contains {} total curves.'.format(curve, self.curve_count)
-        df = self.curves[curve - 1]
+        assert curve >= 0, 'Invalid curve ({}). Indexing starts at 0'.format(curve)
+        assert curve < self.curve_count, 'Invalid curve ({}). File contains {} total curves.'.format(curve, self.curve_count)
+        df = self.curves[curve]
+        
         return df[['Vf', 'Im']]
