@@ -49,6 +49,16 @@ class GamryParser:
         """return the number of loaded curves"""
         assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
         return self.curve_count
+    
+    def get_curve_indices(self):
+        """return indices of curves (zero-based indexing)"""
+        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
+        return tuple(range(self.curve_count))
+    
+    def get_curve_numbers(self):
+        """return Gamry curve numbers (one-based indexing, as in Gamry software)"""
+        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
+        return tuple(range(1,self.curve_count+1))
 
     def get_curve_data(self, curve=0):
         """retrieve relevant experimental data
