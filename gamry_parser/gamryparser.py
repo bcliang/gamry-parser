@@ -17,6 +17,11 @@ class GamryParser:
         self.curve_count = 0
         self.curve_units = dict()
         self.ocv_curve = False
+        self.REQUIRED_UNITS = {
+                'CV':{
+                        'Vf': 'V vs. Ref.',
+                        'Im': 'A'
+                        },}
 
     def load(self, filename=None):
         """save experiment information to \"header\", then save curve data to \"curves\"
@@ -129,7 +134,7 @@ class GamryParser:
                             note += f.readline().strip()+'\n'
                         self.header[cur_line[0]] = note
                     elif cur_line[0] == 'OCVCURVE':
-                        n_points = int(cur_line[2])
+#                        n_points = int(cur_line[2])
                         print('OCV curve found and not processed')
                         self.ocv_curve = True
                         
@@ -191,12 +196,14 @@ class GamryParser:
                 for key in curve_keys:
                     nonnumeric_keys = ['Pt','Over']
                     if key not in nonnumeric_keys:
-#                        print(key)
-#                        print(temp[key])
                         temp[key] = temp[key].apply(locale.atof)
 
                 if not bool(self.curve_units.items()):
+                    exp_type = self.header['TAG']
                     for key, unit in zip(curve_keys, temp_units):
+                        if exp_type in self.REQUIRED_UNITS.keys():
+                            if key in self.REQUIRED_UNITS[exp_type].keys():
+                                assert unit == self.REQUIRED_UNITS[exp_type][key], 'Unit error for \'{}\': Expected \'{}\', found \'{}\'!'.format(key, self.REQUIRED_UNITS[exp_type][key], unit)
                         self.curve_units[key] = unit
                 else:
                     for key, unit in zip(curve_keys, temp_units):
@@ -204,7 +211,6 @@ class GamryParser:
                         
 
                 self.curves.append(temp)
-#                self.curve_units.append(temp_units)
                 self.curve_count += 1
 
         return self.curves
