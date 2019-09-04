@@ -2,6 +2,7 @@ import pandas as pd
 import gamry_parser as parser
 import unittest
 
+
 class TestImpedance(unittest.TestCase):
     def setUp(self):
         pass
