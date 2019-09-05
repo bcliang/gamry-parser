@@ -1,6 +1,7 @@
 import pandas as pd
 import gamry_parser as parser
 import unittest
+import locale
 
 
 class TestGamryParser(unittest.TestCase):
@@ -33,6 +34,7 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(gp.header['CHECK2PARAM']['finish'], 0.5)
 
     def test_load(self):
+        locale.setlocale(locale.LC_ALL, '')
         # file not defined
         gp = parser.GamryParser()
         self.assertRaises(AssertionError, gp.load)
@@ -58,6 +60,7 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(curve5['IERange'][-1], 5)
 
     def test_getters(self):
+        locale.setlocale(locale.LC_ALL, '')
         gp = parser.GamryParser(filename='tests/cv_data.dta')
         gp.load()
         self.assertEqual(gp.get_curve_count(), 5)
@@ -70,6 +73,7 @@ class TestGamryParser(unittest.TestCase):
         self.assertTrue(isinstance(curves[-1], pd.DataFrame))
 
     def test_indices_and_numbers(self):
+        locale.setlocale(locale.LC_ALL, '')
         gp = parser.GamryParser(filename='tests/cv_data.dta')
         gp.load()
         indices = gp.get_curve_indices()
@@ -78,6 +82,7 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(numbers, (1, 2, 3, 4, 5))
 
     def test_ocvcurve_self(self):
+        locale.setlocale(locale.LC_ALL, '')
         gp = parser.GamryParser(filename='tests/cv_data.dta')
         gp.load()
         self.assertFalse(gp.ocv_exists)
@@ -90,3 +95,33 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(gp.get_ocv_curve().iloc[-1]['T'], 10.3333)
         self.assertEqual(gp.get_ocv_curve().iloc[-1]['Vf'], 0.283437)
         self.assertEqual(gp.get_ocv_value(), 0.2834373)
+
+    def test_locale(self):
+        # confirm that files will load properly with non-US locales
+        locale.setlocale(locale.LC_ALL, 'de_DE')
+        gp = parser.GamryParser(filename='tests/chronoa_de_data.dta')
+        gp.load()
+        curve = gp.get_curve_data()
+        self.assertEqual(curve['T'][-1], 270)
+        self.assertEqual(curve['Vf'][0], -5e-004)
+        self.assertEqual(curve['Vf'][-1], 4e-001)
+        self.assertEqual(curve['Im'][0], -2e-008)
+        self.assertEqual(curve['Im'][-1], 3e-009)
+
+        # confirm that files can load with mismatched locales..
+        # NOTE: data should be parsed according to locale rules, resulting in data corruption
+        gp = parser.GamryParser(filename='tests/chronoa_data.dta')
+        gp.load()
+        curve = gp.get_curve_data()
+        self.assertEqual(curve['T'][-1], 270)
+        self.assertEqual(curve['Vf'][0], -54)
+        self.assertEqual(curve['Vf'][-1], 40000)
+        self.assertEqual(curve['Im'][-1], 3e-4)
+
+        locale.setlocale(locale.LC_ALL, 'en_US')
+        gp = parser.GamryParser(filename='tests/chronoa_de_data.dta')
+        gp.load()
+        curve = gp.get_curve_data()
+        self.assertEqual(curve['Vf'][0], -50)
+        self.assertEqual(curve['Vf'][-1], 40000)
+        self.assertEqual(curve['Im'][0], -0.002)
