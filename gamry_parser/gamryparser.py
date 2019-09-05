@@ -3,6 +3,7 @@ import datetime
 import re
 import os
 import locale
+from io import StringIO
 
 
 class GamryParser:
@@ -16,7 +17,8 @@ class GamryParser:
         self.curves = []
         self.curve_count = 0
         self.curve_units = dict()
-        self.ocv_curve = False
+        self.ocv = None
+        self.ocv_exists = False
         self.REQUIRED_UNITS = {
             'CV': {
                 'Vf': 'V vs. Ref.',
@@ -96,6 +98,20 @@ class GamryParser:
         assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
         return self.header['TAG']
 
+    def get_ocv_curve(self):
+        """return the contents of OCVCURVE (if it exists). Deprecated in Framework version 7"""
+        if self.ocv_exists:
+            return self.ocv
+        else:
+            return None
+
+    def get_ocv_value(self):
+        """return the final OCV measurement of the experiment (if it exists)"""
+        if 'EOC' in self.header.keys():
+            return self.header['EOC']
+        else:
+            return None
+
     def read_header(self):
         """helper function to grab data from the EXPLAIN file header, which contains the loaded experiment's configuration
 
@@ -144,9 +160,14 @@ class GamryParser:
                             note += f.readline().strip() + '\n'
                         self.header[cur_line[0]] = note
                     elif cur_line[0] == 'OCVCURVE':
-                        #                        n_points = int(cur_line[2])
-                        print('OCV curve found and not processed')
-                        self.ocv_curve = True
+                        n_points = int(cur_line[2])
+                        ocv = f.readline().strip() + '\n'  # grab header data
+                        f.readline()  # skip second line of header
+                        for i in range(n_points):
+                            ocv += f.readline().strip() + '\n'
+                        ocv = pd.read_csv(StringIO(ocv), '\t', header=0, index_col=0)
+                        self.ocv = ocv
+                        self.ocv_exists = True
 
             self.header_length = f.tell()
 
