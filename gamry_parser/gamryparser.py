@@ -3,6 +3,7 @@ import datetime
 import re
 import os
 import locale
+from io import StringIO
 
 
 class GamryParser:
@@ -16,12 +17,13 @@ class GamryParser:
         self.curves = []
         self.curve_count = 0
         self.curve_units = dict()
-        self.ocv_curve = False
+        self.ocv = None
+        self.ocv_exists = False
         self.REQUIRED_UNITS = {
-                'CV':{
-                        'Vf': 'V vs. Ref.',
-                        'Im': 'A'
-                        },}
+            'CV': {
+                'Vf': 'V vs. Ref.',
+                'Im': 'A'
+            }, }
 
     def load(self, filename=None):
         """save experiment information to \"header\", then save curve data to \"curves\"
@@ -49,16 +51,16 @@ class GamryParser:
         """return the number of loaded curves"""
         assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
         return self.curve_count
-    
+
     def get_curve_indices(self):
         """return indices of curves (zero-based indexing)"""
         assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
         return tuple(range(self.curve_count))
-    
+
     def get_curve_numbers(self):
         """return Gamry curve numbers (one-based indexing, as in Gamry software)"""
         assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
-        return tuple(range(1,self.curve_count+1))
+        return tuple(range(1, self.curve_count + 1))
 
     def get_curve_data(self, curve=0):
         """retrieve relevant experimental data
@@ -96,6 +98,20 @@ class GamryParser:
         assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
         return self.header['TAG']
 
+    def get_ocv_curve(self):
+        """return the contents of OCVCURVE (if it exists). Deprecated in Framework version 7"""
+        if self.ocv_exists:
+            return self.ocv
+        else:
+            return None
+
+    def get_ocv_value(self):
+        """return the final OCV measurement of the experiment (if it exists)"""
+        if 'EOC' in self.header.keys():
+            return self.header['EOC']
+        else:
+            return None
+
     def read_header(self):
         """helper function to grab data from the EXPLAIN file header, which contains the loaded experiment's configuration
 
@@ -110,7 +126,7 @@ class GamryParser:
         pos = 0
         with open(self.fname, 'r', encoding='utf8', errors='ignore') as f:
             cur_line = f.readline().split('\t')
-            while not re.search(r'^CURVE', cur_line[0]):
+            while not re.search(r'(^|Z)CURVE', cur_line[0]):
                 if f.tell() == pos:
                     break
 
@@ -124,7 +140,7 @@ class GamryParser:
                     if cur_line[1] in ['LABEL', 'PSTAT']:
                         self.header[cur_line[0]] = cur_line[2]
                     elif cur_line[1] in ['QUANT', 'IQUANT', 'POTEN']:
-                        self.header[cur_line[0]] = locale.atof(cur_line[2]) # locale-friendly alternative to float
+                        self.header[cur_line[0]] = locale.atof(cur_line[2])  # locale-friendly alternative to float
                     elif cur_line[1] in ['IQUANT', 'SELECTOR']:
                         self.header[cur_line[0]] = int(cur_line[2])
                     elif cur_line[1] in ['TOGGLE']:
@@ -132,8 +148,8 @@ class GamryParser:
                     elif cur_line[1] == 'TWOPARAM':
                         self.header[cur_line[0]] = {
                             'enable': cur_line[2] == 'T',
-                            'start': locale.atof(cur_line[3]), # locale-friendly alternative to float
-                            'finish': locale.atof(cur_line[4]) # locale-friendly alternative to float
+                            'start': locale.atof(cur_line[3]),  # locale-friendly alternative to float
+                            'finish': locale.atof(cur_line[4])  # locale-friendly alternative to float
                         }
                     elif cur_line[0] == 'TAG':
                         self.header['TAG'] = cur_line[1]
@@ -141,13 +157,17 @@ class GamryParser:
                         n_notes = int(cur_line[2])
                         note = ''
                         for i in range(n_notes):
-                            note += f.readline().strip()+'\n'
+                            note += f.readline().strip() + '\n'
                         self.header[cur_line[0]] = note
                     elif cur_line[0] == 'OCVCURVE':
-#                        n_points = int(cur_line[2])
-                        print('OCV curve found and not processed')
-                        self.ocv_curve = True
-                        
+                        n_points = int(cur_line[2])
+                        ocv = f.readline().strip() + '\n'  # grab header data
+                        f.readline()  # skip second line of header
+                        for i in range(n_points):
+                            ocv += f.readline().strip() + '\n'
+                        ocv = pd.read_csv(StringIO(ocv), '\t', header=0, index_col=0)
+                        self.ocv = ocv
+                        self.ocv_exists = True
 
             self.header_length = f.tell()
 
@@ -177,10 +197,10 @@ class GamryParser:
                     return [], [], ''
 
                 units = fid.readline().strip().split('\t')
-                
+
                 curve = ''
                 cur_line = fid.readline().strip().split()
-                
+
                 while not re.search(r'CURVE', cur_line[0]):
                     curve += '\t'.join(cur_line)
                     curve += '\n'
@@ -190,7 +210,7 @@ class GamryParser:
                         break
 
                 curve = curve[:-1]  # remove trailing newline
-                
+
                 return keys, units, curve
 
             while True:
@@ -204,9 +224,9 @@ class GamryParser:
                 temp.set_index(curve_keys[0], inplace=True)
 
                 for key in curve_keys:
-                    nonnumeric_keys = ['Pt','Over']
+                    nonnumeric_keys = ['Pt', 'Over']
                     if key not in nonnumeric_keys:
-                        temp[key] = temp[key].apply(locale.atof)
+                        temp[key] = temp[key].map(locale.atof)
 
                 if not bool(self.curve_units.items()):
                     exp_type = self.header['TAG']
@@ -218,7 +238,6 @@ class GamryParser:
                 else:
                     for key, unit in zip(curve_keys, temp_units):
                         assert self.curve_units[key] == unit, 'Unit mismatch found!'
-                        
 
                 self.curves.append(temp)
                 self.curve_count += 1

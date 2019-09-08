@@ -126,13 +126,13 @@ $ coverage report -m
 Name                          Stmts   Miss  Cover   Missing
 -----------------------------------------------------------
 gamry_parser\__init__.py          5      0   100%
-gamry_parser\chronoa.py          16      0   100%
-gamry_parser\cv.py               16      0   100%
+gamry_parser\chronoa.py          22      0   100%
+gamry_parser\cv.py               17      0   100%
 gamry_parser\eispot.py            6      0   100%
-gamry_parser\gamryparser.py      96      1    99%   63
+gamry_parser\gamryparser.py     143      1    99%   131
 gamry_parser\version.py           1      0   100%
 -----------------------------------------------------------
-TOTAL                           140      1    99%
+TOTAL                           194      1    99%
 ```
 
 ### Code Guidelines

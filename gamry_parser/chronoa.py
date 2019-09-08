@@ -20,7 +20,7 @@ class ChronoAmperometry(parser.GamryParser):
         super().__init__(filename=filename)
         self.to_timestamp = to_timestamp
 
-    def get_curve_data(self, curve=1):
+    def get_curve_data(self, curve=0):
         """ retrieve chronoamperometry experiment data
 
         Args:
