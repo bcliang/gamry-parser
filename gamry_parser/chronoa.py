@@ -34,7 +34,7 @@ class ChronoAmperometry(parser.GamryParser):
         """
 
         assert self.loaded, 'DTA file not loaded. Run ChronoAmperometry.load()'
-        df = self.curves[curve - 1]
+        df = self.curves[curve]
         return df[['T', 'Vf', 'Im']]
 
     def get_sample_time(self):
@@ -51,7 +51,7 @@ class ChronoAmperometry(parser.GamryParser):
         assert self.loaded, 'DTA file not loaded. Run ChronoAmperometry.load()'
         return self.header['SAMPLETIME']
 
-    def get_sample_count(self, curve=1):
+    def get_sample_count(self, curve=0):
         """ compute the number of samples collected for the loaded chronoamperometry experiment
 
         Args:
