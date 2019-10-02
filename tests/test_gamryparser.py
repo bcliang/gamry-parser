@@ -105,6 +105,7 @@ class TestGamryParser(unittest.TestCase):
         gp = parser.GamryParser(filename='tests/chronoa_de_data.dta')
         gp.load()
         curve = gp.get_curve_data()
+        print(curve)
         self.assertEqual(curve['T'].iloc[-1], 270)
         self.assertEqual(curve['Vf'].iloc[0], -5e-004)
         self.assertEqual(curve['Vf'].iloc[-1], 4e-001)
