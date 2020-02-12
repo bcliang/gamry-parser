@@ -234,8 +234,8 @@ class GamryParser:
                             if key in self.REQUIRED_UNITS[exp_type].keys():
                                 assert unit == self.REQUIRED_UNITS[exp_type][key], \
                                     'Unit error for \'{}\': Expected \'{}\', found \'{}\'!'.format(
-                                        key, 
-                                        self.REQUIRED_UNITS[exp_type][key], 
+                                        key,
+                                        self.REQUIRED_UNITS[exp_type][key],
                                         unit)
                         self.curve_units[key] = unit
                 else:

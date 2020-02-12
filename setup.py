@@ -1,9 +1,11 @@
 import io
 from setuptools import find_packages, setup
 
+
 def get_requirements():
     requirements = open("requirements.txt", "r").read()
     return list(filter(lambda x: x != "", requirements.split()))
+
 
 main_ns = {}
 exec(open('gamry_parser/version.py').read(), main_ns)

@@ -59,18 +59,18 @@ class OpenCircuitPotential(parser.GamryParser):
         assert self.header['TAG'] == "CORPOT", \
             "This does not appear to be an Open Circuit Potential \
                 Experiment file (looking for CORPOT, received {})".format(
-                    self.get_experiment_type())
-        # assert len(re.findall(r"Open Circuit Potential", header)) > 0, "This does not appear to be an Open Circuit Potential Experiment file"
+                    self.header['TAG'])
+
         self.read_curves()
         if self.to_timestamp:
             "we want data returned with timestamps instead of relative time"
             start_time = pd.to_datetime(
-                self.header['DATE'] + ' ' + self.header['TIME'], 
+                self.header['DATE'] + ' ' + self.header['TIME'],
                 dayfirst=bool(re.search(r'[0-9]+\-[0-9]+\-[0-2]{1}[0-9]{3}', self.header['DATE'])))
             for curve in self.curves:
                 curve['T'] = (start_time + pd.to_timedelta(curve['T'], 's'))
 
-        self.ocv_exists =  True
+        self.ocv_exists = True
         self.ocv = self.curves[0]
         self.loaded = True
 
