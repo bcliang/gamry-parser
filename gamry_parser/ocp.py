@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import re
 
+
 class OpenCircuitPotential(parser.GamryParser):
     """Load an Open Circuit Potential (CORPOT) experiment generated in Gamry EXPLAIN format."""
     def __init__(self, filename=None, to_timestamp=True):
@@ -58,8 +59,8 @@ class OpenCircuitPotential(parser.GamryParser):
         self.read_header()
         assert self.header['TAG'] == "CORPOT", \
             "This does not appear to be an Open Circuit Potential \
-                Experiment file (looking for CORPOT, received {})".format(
-                    self.header['TAG'])
+            Experiment file (looking for CORPOT, received {})".format(
+                self.header['TAG'])
 
         self.read_curves()
         if self.to_timestamp:

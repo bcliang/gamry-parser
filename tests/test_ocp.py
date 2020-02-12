@@ -58,4 +58,3 @@ class TestOpenCircuit(unittest.TestCase):
 
         # pandas equivalence check
         assert_frame_equal(gp.get_ocv_curve(), gp.curves[0])
-        
