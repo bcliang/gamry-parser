@@ -84,7 +84,7 @@ ipython notebook demonstration scripts are included in the `demo` folder.
 
 #### Additional Examples
 
-Similar procedure should be followed for using the `gamry_parser.CyclicVoltammetry()` and `gamry_parser.Impedance()` parser subclasses. Take a look at `usage.py` and in `tests/` for some additional usage examples.
+Similar procedure should be followed for using the `gamry_parser.CyclicVoltammetry()`, `gamry_parser.Impedance()`, and `gamry_parser.OpenCircuitPotential()` parser subclasses. Take a look at `usage.py` and in `tests/` for some additional usage examples.
 
 ## Development
 
@@ -127,14 +127,14 @@ $ coverage report -m
 Name                          Stmts   Miss  Cover   Missing
 -----------------------------------------------------------
 gamry_parser/__init__.py          6      0   100%
-gamry_parser/chronoa.py          22      0   100%
+gamry_parser/chronoa.py          23      0   100%
 gamry_parser/cv.py               17      0   100%
 gamry_parser/eispot.py            6      0   100%
 gamry_parser/gamryparser.py     146      3    98%   132, 225-226
-gamry_parser/ocp.py              31      0   100%
+gamry_parser/ocp.py              32      0   100%
 gamry_parser/version.py           1      0   100%
 -----------------------------------------------------------
-TOTAL                           229      3    99%
+TOTAL                           231      3    99%
 ```
 
 ### Code Guidelines
