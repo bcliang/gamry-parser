@@ -1,4 +1,5 @@
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 import datetime
 import re
 import os
@@ -92,7 +93,7 @@ class GamryParser:
         Args:
             None
         Returns:
-            str: Experiment Type (EXPALIN-TAG)
+            str: Experiment Type (EXPLAIN-TAG)
 
         """
         assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
@@ -192,58 +193,53 @@ class GamryParser:
 
             def read_curve_data(fid):
                 pos = 0
-                keys = fid.readline().strip().split('\t')
-                if len(keys) <= 1:
-                    return [], [], ''
+                curve = f.readline().strip() + '\n'  # grab header data
+                if len(curve) <= 1:
+                    return [], [], pd.DataFrame()
 
-                units = fid.readline().strip().split('\t')
-
-                curve = ''
-                cur_line = fid.readline().strip().split()
-
-                while not re.search(r'CURVE', cur_line[0]):
-                    curve += '\t'.join(cur_line)
-                    curve += '\n'
+                units = f.readline().strip().split('\t')
+                cur_line = fid.readline().strip()
+                while not re.search(r'CURVE', cur_line):
+                    curve += cur_line + '\n'
                     pos = fid.tell()
-                    cur_line = fid.readline().strip().split()
+                    cur_line = fid.readline().strip()
                     if fid.tell() == pos:
                         break
 
-                curve = curve[:-1]  # remove trailing newline
+                curve = pd.read_csv(StringIO(curve), '\t', header=0, index_col=0)
+                keys = curve.columns.values.tolist()
+                units = units[1:]
 
                 return keys, units, curve
 
             while True:
-                curve_keys, temp_units, curve_vals = read_curve_data(f)
-
-                if len(curve_vals) == 0:
+                curve_keys, curve_units, curve = read_curve_data(f)
+                if curve.empty:
                     break
-
-                temp = pd.DataFrame([x.split('\t') for x in curve_vals.split('\n')])
-                temp.columns = curve_keys
-                temp.set_index(curve_keys[0], inplace=True)
 
                 for key in curve_keys:
                     nonnumeric_keys = ['Over', ]
                     if key in nonnumeric_keys:
                         continue
                     elif key == 'Pt':
-                        temp.index = temp.index.map(int)
+                        if not is_numeric_dtype(curve.index):
+                            curve.index = curve.index.map(int)
                     else:
-                        temp[key] = temp[key].map(locale.atof)
+                        if not is_numeric_dtype(curve[key]):
+                            curve[key] = curve[key].map(locale.atof)
 
                 if not bool(self.curve_units.items()):
                     exp_type = self.header['TAG']
-                    for key, unit in zip(curve_keys, temp_units):
+                    for key, unit in zip(curve_keys, curve_units):
                         if exp_type in self.REQUIRED_UNITS.keys():
                             if key in self.REQUIRED_UNITS[exp_type].keys():
                                 assert unit == self.REQUIRED_UNITS[exp_type][key], 'Unit error for \'{}\': Expected \'{}\', found \'{}\'!'.format(key, self.REQUIRED_UNITS[exp_type][key], unit)
                         self.curve_units[key] = unit
                 else:
-                    for key, unit in zip(curve_keys, temp_units):
+                    for key, unit in zip(curve_keys, curve_units):
                         assert self.curve_units[key] == unit, 'Unit mismatch found!'
 
-                self.curves.append(temp)
+                self.curves.append(curve)
                 self.curve_count += 1
 
         return self.curves
