@@ -93,7 +93,7 @@ class GamryParser:
         Args:
             None
         Returns:
-            str: Experiment Type (EXPALIN-TAG)
+            str: Experiment Type (EXPLAIN-TAG)
 
         """
         assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
