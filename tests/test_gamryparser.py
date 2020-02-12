@@ -122,7 +122,9 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(curve['Vf'].iloc[-1], 4e-001)
         self.assertEqual(curve['Im'].iloc[-1], 3e-009)
 
-        # pandas.read_csv() assumes 1,234,567.890 notation by default. If parsed with the wrong locale, we should expect data corruption in the resulting dataframe.
+        # pandas.read_csv() assumes 1,234,567.890 notation by default. 
+        # If parsed with the wrong locale, we should expect data corruption 
+        # in the resulting dataframe.
         locale.setlocale(locale.LC_ALL, 'en_US.utf8')
         gp = parser.GamryParser(filename='tests/chronoa_de_data.dta')
         gp.load()

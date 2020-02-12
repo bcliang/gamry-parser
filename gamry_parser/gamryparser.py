@@ -1,6 +1,5 @@
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
-import datetime
 import re
 import os
 import locale
@@ -157,14 +156,14 @@ class GamryParser:
                     elif cur_line[0] == 'NOTES':
                         n_notes = int(cur_line[2])
                         note = ''
-                        for i in range(n_notes):
+                        for _ in range(n_notes):
                             note += f.readline().strip() + '\n'
                         self.header[cur_line[0]] = note
                     elif cur_line[0] == 'OCVCURVE':
                         n_points = int(cur_line[2])
                         ocv = f.readline().strip() + '\n'  # grab header data
                         f.readline()  # skip second line of header
-                        for i in range(n_points):
+                        for _ in range(n_points):
                             ocv += f.readline().strip() + '\n'
                         ocv = pd.read_csv(StringIO(ocv), '\t', header=0, index_col=0)
                         self.ocv = ocv
@@ -233,7 +232,11 @@ class GamryParser:
                     for key, unit in zip(curve_keys, curve_units):
                         if exp_type in self.REQUIRED_UNITS.keys():
                             if key in self.REQUIRED_UNITS[exp_type].keys():
-                                assert unit == self.REQUIRED_UNITS[exp_type][key], 'Unit error for \'{}\': Expected \'{}\', found \'{}\'!'.format(key, self.REQUIRED_UNITS[exp_type][key], unit)
+                                assert unit == self.REQUIRED_UNITS[exp_type][key], \
+                                    'Unit error for \'{}\': Expected \'{}\', found \'{}\'!'.format(
+                                        key, 
+                                        self.REQUIRED_UNITS[exp_type][key], 
+                                        unit)
                         self.curve_units[key] = unit
                 else:
                     for key, unit in zip(curve_keys, curve_units):
