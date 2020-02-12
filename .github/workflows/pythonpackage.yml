@@ -29,7 +29,8 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Execute unit tests
       run: |
-        sudo /usr/share/locales/install-language-pack de_DE
+        sudo /usr/share/locales/install-language-pack de_DE.UTF-8
+        sudo /usr/share/locales/install-language-pack en_US.UTF-8
         sudo locale-gen --purge
         pip install coverage
         coverage run --source=gamry_parser/ setup.py test
