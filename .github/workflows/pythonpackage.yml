@@ -30,6 +30,7 @@ jobs:
     - name: Execute unit tests
       run: |
         sudo /usr/share/locales/install-language-pack de_DE
+        sudo dpkg-reconfigure locales
         pip install coverage
         coverage run --source=gamry_parser/ setup.py test
         coverage report -m
