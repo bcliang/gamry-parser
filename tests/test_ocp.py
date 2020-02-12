@@ -19,8 +19,8 @@ class TestOpenCircuit(unittest.TestCase):
         gp.load()
         curve = gp.get_curve_data()
         # 'T' should return datetime objects
-        self.assertEqual(curve['T'][0], pd.to_datetime('2020-10-02 17:18:05.008330'))
-        self.assertEqual(curve['T'].iloc[-1], pd.to_datetime('2020-10-02 17:19:45.175000'))
+        self.assertEqual(curve['T'][0], pd.to_datetime('2020-02-10 17:18:05.008330'))
+        self.assertEqual(curve['T'].iloc[-1], pd.to_datetime('2020-02-10 17:19:45.175000'))
 
 
     def test_is_loaded(self):
