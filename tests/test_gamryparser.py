@@ -101,7 +101,12 @@ class TestGamryParser(unittest.TestCase):
 
     def test_locale(self):
         # confirm that files will load properly with non-US locales
-        locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+        try:
+            locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+        except Exception:
+            # for python < 3.7
+            locale.setlocale(locale.LC_ALL, 'de_DE')
+
         gp = parser.GamryParser(filename='tests/chronoa_de_data.dta')
         gp.load()
         curve = gp.get_curve_data()
@@ -122,7 +127,11 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(curve['Im'].iloc[-1], 3e-009)
 
         # pandas.read_csv() assumes 1,234,567.890 notation by default. If parsed with the wrong locale, we should expect data corruption in the resulting dataframe.
-        locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+        try:
+            locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+        except Exception:
+            # for python < 3.7
+            locale.setlocale(locale.LC_ALL, 'en_US')
         gp = parser.GamryParser(filename='tests/chronoa_de_data.dta')
         gp.load()
         curve = gp.get_curve_data()
