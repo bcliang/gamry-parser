@@ -35,8 +35,21 @@ class TestOpenCircuit(unittest.TestCase):
         self.assertEqual(curve['Vf'][0], 0.0205436)
         self.assertEqual(curve['Vf'].iloc[-1], 0.0345678)
 
+        # no filename at init, only provided at load
+        gp = parser.OpenCircuitPotential()
+        gp.load(filename='tests/ocp_data.dta')
+        self.assertEqual(len(gp.curves), 1)
+
+        curve = gp.get_curve_data()
+        for key in curve.keys():
+            self.assertTrue(key in ['T', 'Vf'])
+        self.assertEqual(curve.shape, (21,2))            
+        self.assertEqual(curve['Vf'][0], 0.0205436)
+        self.assertEqual(curve['Vf'].iloc[-1], 0.0345678)
+
     def test_getters(self):
         gp = parser.OpenCircuitPotential(filename='tests/ocp_data.dta', to_timestamp=False)
+        self.assertIsNone(gp.get_ocv_curve())
         gp.load()
         curve = gp.get_curve_data()
         self.assertEqual(gp.get_curve_count(), 1)

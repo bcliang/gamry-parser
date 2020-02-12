@@ -32,7 +32,7 @@ class OpenCircuitPotential(parser.GamryParser):
 
         """
 
-        assert self.loaded, 'DTA file not loaded. Run Impedance.load()'
+        assert self.loaded, 'DTA file not loaded. Run OpenCircuitPotential.load()'
         df = self.curves[0]
         return df[['T', 'Vf']]
 

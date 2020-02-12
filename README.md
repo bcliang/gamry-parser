@@ -96,7 +96,8 @@ Similar procedure should be followed for using the `gamry_parser.CyclicVoltammet
   │   ├── chronoa.py            # ChronoAmperometry() experiment parser
   │   ├── cv.py                 # CyclicVoltammetry() experiment parser
   │   ├── eispot.py             # Impedance() experiment parser
-  │   └── gamryparser.py        # GamryParser: generic DTA file parser
+  │   └── ocp.py                # OpenCircuitPotential() experiment parser
+  |   └── gamryparser.py        # GamryParser: generic DTA file parser
   ├── tests                     # unit tests and test data
   |   └── ...
   ├── setup.py                  # setuptools configuration
@@ -125,14 +126,15 @@ Latest output:
 $ coverage report -m
 Name                          Stmts   Miss  Cover   Missing
 -----------------------------------------------------------
-gamry_parser\__init__.py          5      0   100%
-gamry_parser\chronoa.py          22      0   100%
-gamry_parser\cv.py               17      0   100%
-gamry_parser\eispot.py            6      0   100%
-gamry_parser\gamryparser.py     143      1    99%   131
-gamry_parser\version.py           1      0   100%
+gamry_parser/__init__.py          6      0   100%
+gamry_parser/chronoa.py          22      0   100%
+gamry_parser/cv.py               17      0   100%
+gamry_parser/eispot.py            6      0   100%
+gamry_parser/gamryparser.py     146      3    98%   132, 225-226
+gamry_parser/ocp.py              31      0   100%
+gamry_parser/version.py           1      0   100%
 -----------------------------------------------------------
-TOTAL                           194      1    99%
+TOTAL                           229      3    99%
 ```
 
 ### Code Guidelines
