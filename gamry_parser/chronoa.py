@@ -2,6 +2,7 @@ import gamry_parser as parser
 import pandas as pd
 import re
 
+
 class ChronoAmperometry(parser.GamryParser):
     """Load a ChronoAmperometry experiment generated in Gamry EXPLAIN format."""
 
@@ -80,7 +81,7 @@ class ChronoAmperometry(parser.GamryParser):
         if self.to_timestamp:
             "we want data returned with timestamps instead of relative time"
             start_time = pd.to_datetime(
-                self.header['DATE'] + ' ' + self.header['TIME'], 
+                self.header['DATE'] + ' ' + self.header['TIME'],
                 dayfirst=bool(re.search(r'[0-9]+\-[0-9]+\-[0-2]{1}[0-9]{3}', self.header['DATE'])))
             for curve in self.curves:
                 curve['T'] = (start_time + pd.to_timedelta(curve['T'], 's'))

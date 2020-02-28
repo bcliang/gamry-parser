@@ -1,4 +1,3 @@
-import pandas as pd
 import gamry_parser as parser
 import unittest
 
