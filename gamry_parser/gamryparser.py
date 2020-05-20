@@ -126,7 +126,7 @@ class GamryParser:
         pos = 0
         with open(self.fname, 'r', encoding='utf8', errors='ignore') as f:
             cur_line = f.readline().split('\t')
-            while not re.search(r'(^|Z)CURVE', cur_line[0]):
+            while not re.search(r'(^|Z|VFP)CURVE', cur_line[0]):
                 if f.tell() == pos:
                     break
 
@@ -173,6 +173,37 @@ class GamryParser:
 
         return self.header, self.header_length
 
+    def read_curve_data(self, fid):
+        """helper function to process an EXPLAIN Table
+
+        Args:
+            fid (int): a file handle pointer to the table position in the data files
+        Returns:
+            keys (list): column identifier (e.g. Vf)
+            units (list): column unit type (e.g. V)
+            curve (DataFrame): Table data saved as a pandas Dataframe
+        
+        """
+        pos = 0
+        curve = fid.readline().strip() + '\n'  # grab header data
+        if len(curve) <= 1:
+            return [], [], pd.DataFrame()
+
+        units = fid.readline().strip().split('\t')
+        cur_line = fid.readline().strip()
+        while not re.search(r'CURVE', cur_line):
+            curve += cur_line + '\n'
+            pos = fid.tell()
+            cur_line = fid.readline().strip()
+            if fid.tell() == pos:
+                break
+
+        curve = pd.read_csv(StringIO(curve), '\t', header=0, index_col=0)
+        keys = curve.columns.values.tolist()
+        units = units[1:]
+
+        return keys, units, curve
+
     def read_curves(self):
         """helper function to iterate through curves in a dta file and save as individual dataframes
 
@@ -190,29 +221,8 @@ class GamryParser:
         with open(self.fname, 'r', encoding='utf8', errors='ignore') as f:
             f.seek(self.header_length)  # skip to end of header
 
-            def read_curve_data(fid):
-                pos = 0
-                curve = f.readline().strip() + '\n'  # grab header data
-                if len(curve) <= 1:
-                    return [], [], pd.DataFrame()
-
-                units = f.readline().strip().split('\t')
-                cur_line = fid.readline().strip()
-                while not re.search(r'CURVE', cur_line):
-                    curve += cur_line + '\n'
-                    pos = fid.tell()
-                    cur_line = fid.readline().strip()
-                    if fid.tell() == pos:
-                        break
-
-                curve = pd.read_csv(StringIO(curve), '\t', header=0, index_col=0)
-                keys = curve.columns.values.tolist()
-                units = units[1:]
-
-                return keys, units, curve
-
             while True:
-                curve_keys, curve_units, curve = read_curve_data(f)
+                curve_keys, curve_units, curve = self.read_curve_data(f)
                 if curve.empty:
                     break
 
