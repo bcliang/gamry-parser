@@ -13,6 +13,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 -
 
+## [0.4.3] - 2020-05-28
+
+### Fixed
+- [#30](https://github.com/bcliang/gamry-parser/pull/28) Include missing files in sdist
+
 ## [0.4.2] - 2020-05-20
 
 ### Added
