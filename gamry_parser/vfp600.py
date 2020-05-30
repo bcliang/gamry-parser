@@ -1,8 +1,6 @@
 import gamry_parser as parser
 import pandas as pd
-from pandas.api.types import is_numeric_dtype
 import re
-import locale
 from io import StringIO
 
 
@@ -39,7 +37,7 @@ class VFP600(parser.GamryParser):
         """
 
         assert self.loaded, 'DTA file not loaded. Run ChronoAmperometry.load()'
-        return 1/self.header['FREQ']
+        return 1 / self.header['FREQ']
 
     def get_sample_count(self, curve=0):
         """ compute the number of samples collected for the loaded chronoamperometry experiment
@@ -64,7 +62,7 @@ class VFP600(parser.GamryParser):
             keys (list): column identifier (e.g. Vf)
             units (list): column unit type (e.g. V)
             curve (DataFrame): Table data saved as a pandas Dataframe
-        
+
         """
         pos = 0
         curve = fid.readline().strip() + '\n'  # grab header data
@@ -85,4 +83,3 @@ class VFP600(parser.GamryParser):
         units = units[1:]
 
         return keys, units, curve
-

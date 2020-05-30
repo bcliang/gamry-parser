@@ -6,6 +6,7 @@ import re
 
 class OpenCircuitPotential(parser.GamryParser):
     """Load an Open Circuit Potential (CORPOT) experiment generated in Gamry EXPLAIN format."""
+
     def __init__(self, filename=None, to_timestamp=True):
         """ OpenCircuitPotential.__init__
 
@@ -54,7 +55,8 @@ class OpenCircuitPotential(parser.GamryParser):
 
         self.loaded = False
         assert self.fname is not None, "GamryParser needs to know what file to parse."
-        assert os.path.exists(self.fname), "The file \'{}\' was not found.".format(self.fname)
+        assert os.path.exists(
+            self.fname), "The file \'{}\' was not found.".format(self.fname)
 
         self.read_header()
         assert self.header['TAG'] == "CORPOT", \

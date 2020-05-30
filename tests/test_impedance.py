@@ -19,4 +19,5 @@ class TestImpedance(unittest.TestCase):
         gp.load()
         curve = gp.get_curve_data()
         self.assertEqual(len(curve), 10)
-        self.assertTrue((curve.columns == ['Freq', 'Zreal', 'Zimag', 'Zmod', 'Zphz']).all())
+        self.assertTrue(
+            (curve.columns == ['Freq', 'Zreal', 'Zimag', 'Zmod', 'Zphz']).all())

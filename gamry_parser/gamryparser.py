@@ -41,7 +41,8 @@ class GamryParser:
 
         self.loaded = False
         assert self.fname is not None, "GamryParser needs to know what file to parse."
-        assert os.path.exists(self.fname), "The file \'{}\' was not found.".format(self.fname)
+        assert os.path.exists(
+            self.fname), "The file \'{}\' was not found.".format(self.fname)
 
         self.read_header()
         self.read_curves()
@@ -73,7 +74,8 @@ class GamryParser:
 
         """
         assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
-        assert curve < self.curve_count, 'Invalid curve ({}). File contains {} total curves.'.format(curve, self.curve_count)
+        assert curve < self.curve_count, 'Invalid curve ({}). File contains {} total curves.'.format(
+            curve, self.curve_count)
         return self.curves[curve]
 
     def get_curves(self):
@@ -140,7 +142,8 @@ class GamryParser:
                     if cur_line[1] in ['LABEL', 'PSTAT']:
                         self.header[cur_line[0]] = cur_line[2]
                     elif cur_line[1] in ['QUANT', 'IQUANT', 'POTEN']:
-                        self.header[cur_line[0]] = locale.atof(cur_line[2])  # locale-friendly alternative to float
+                        # locale-friendly alternative to float
+                        self.header[cur_line[0]] = locale.atof(cur_line[2])
                     elif cur_line[1] in ['IQUANT', 'SELECTOR']:
                         self.header[cur_line[0]] = int(cur_line[2])
                     elif cur_line[1] in ['TOGGLE']:
@@ -148,8 +151,10 @@ class GamryParser:
                     elif cur_line[1] == 'TWOPARAM':
                         self.header[cur_line[0]] = {
                             'enable': cur_line[2] == 'T',
-                            'start': locale.atof(cur_line[3]),  # locale-friendly alternative to float
-                            'finish': locale.atof(cur_line[4])  # locale-friendly alternative to float
+                            # locale-friendly alternative to float
+                            'start': locale.atof(cur_line[3]),
+                            # locale-friendly alternative to float
+                            'finish': locale.atof(cur_line[4])
                         }
                     elif cur_line[0] == 'TAG':
                         self.header['TAG'] = cur_line[1]
@@ -165,7 +170,8 @@ class GamryParser:
                         f.readline()  # skip second line of header
                         for _ in range(n_points):
                             ocv += f.readline().strip() + '\n'
-                        ocv = pd.read_csv(StringIO(ocv), '\t', header=0, index_col=0)
+                        ocv = pd.read_csv(StringIO(ocv), '\t',
+                                          header=0, index_col=0)
                         self.ocv = ocv
                         self.ocv_exists = True
 
@@ -182,7 +188,7 @@ class GamryParser:
             keys (list): column identifier (e.g. Vf)
             units (list): column unit type (e.g. V)
             curve (DataFrame): Table data saved as a pandas Dataframe
-        
+
         """
         pos = 0
         curve = fid.readline().strip() + '\n'  # grab header data
@@ -214,7 +220,8 @@ class GamryParser:
 
         """
 
-        assert len(self.header) > 0, "Must read file header before curves can be extracted."
+        assert len(
+            self.header) > 0, "Must read file header before curves can be extracted."
         self.curves = []
         self.curve_count = 0
 
