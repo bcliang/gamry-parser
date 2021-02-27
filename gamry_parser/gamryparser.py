@@ -20,10 +20,8 @@ class GamryParser:
         self.ocv = None
         self.ocv_exists = False
         self.REQUIRED_UNITS = {
-            'CV': {
-                'Vf': 'V vs. Ref.',
-                'Im': 'A'
-            }, }
+            "CV": {"Vf": "V vs. Ref.", "Im": "A"},
+        }
 
     def load(self, filename=None):
         """save experiment information to \"header\", then save curve data to \"curves\"
@@ -41,8 +39,9 @@ class GamryParser:
 
         self.loaded = False
         assert self.fname is not None, "GamryParser needs to know what file to parse."
-        assert os.path.exists(
-            self.fname), "The file \'{}\' was not found.".format(self.fname)
+        assert os.path.exists(self.fname), "The file '{}' was not found.".format(
+            self.fname
+        )
 
         self.read_header()
         self.read_curves()
@@ -50,17 +49,17 @@ class GamryParser:
 
     def get_curve_count(self):
         """return the number of loaded curves"""
-        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
+        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return self.curve_count
 
     def get_curve_indices(self):
         """return indices of curves (zero-based indexing)"""
-        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
+        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return tuple(range(self.curve_count))
 
     def get_curve_numbers(self):
         """return Gamry curve numbers (one-based indexing, as in Gamry software)"""
-        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
+        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return tuple(range(1, self.curve_count + 1))
 
     def get_curve_data(self, curve=0):
@@ -73,19 +72,22 @@ class GamryParser:
             pandas.DataFrame: (multiple columns)
 
         """
-        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
-        assert curve < self.curve_count, 'Invalid curve ({}). File contains {} total curves.'.format(
-            curve, self.curve_count)
+        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
+        assert (
+            curve < self.curve_count
+        ), "Invalid curve ({}). File contains {} total curves.".format(
+            curve, self.curve_count
+        )
         return self.curves[curve]
 
     def get_curves(self):
         """return all loaded curves as a list of pandas DataFrames"""
-        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
+        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return self.curves
 
     def get_header(self):
         """return the experiment configuration dictionary"""
-        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
+        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return self.header
 
     def get_experiment_type(self):
@@ -97,8 +99,8 @@ class GamryParser:
             str: Experiment Type (EXPLAIN-TAG)
 
         """
-        assert self.loaded, 'DTA file not loaded. Run GamryParser.load()'
-        return self.header['TAG']
+        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
+        return self.header["TAG"]
 
     def get_ocv_curve(self):
         """return the contents of OCVCURVE (if it exists). Deprecated in Framework version 7"""
@@ -109,8 +111,8 @@ class GamryParser:
 
     def get_ocv_value(self):
         """return the final OCV measurement of the experiment (if it exists)"""
-        if 'EOC' in self.header.keys():
-            return self.header['EOC']
+        if "EOC" in self.header.keys():
+            return self.header["EOC"]
         else:
             return None
 
@@ -126,52 +128,51 @@ class GamryParser:
         """
 
         pos = 0
-        with open(self.fname, 'r', encoding='utf8', errors='ignore') as f:
-            cur_line = f.readline().split('\t')
-            while not re.search(r'(^|Z|VFP)CURVE', cur_line[0]):
+        with open(self.fname, "r", encoding="utf8", errors="ignore") as f:
+            cur_line = f.readline().split("\t")
+            while not re.search(r"(^|Z|VFP)CURVE", cur_line[0]):
                 if f.tell() == pos:
                     break
 
                 pos = f.tell()
-                cur_line = f.readline().strip().split('\t')
+                cur_line = f.readline().strip().split("\t")
                 if len(cur_line[0]) == 0:
                     pass
 
                 if len(cur_line) > 1:
                     # data format: key, type, value
-                    if cur_line[1] in ['LABEL', 'PSTAT']:
+                    if cur_line[1] in ["LABEL", "PSTAT"]:
                         self.header[cur_line[0]] = cur_line[2]
-                    elif cur_line[1] in ['QUANT', 'IQUANT', 'POTEN']:
+                    elif cur_line[1] in ["QUANT", "IQUANT", "POTEN"]:
                         # locale-friendly alternative to float
                         self.header[cur_line[0]] = locale.atof(cur_line[2])
-                    elif cur_line[1] in ['IQUANT', 'SELECTOR']:
+                    elif cur_line[1] in ["IQUANT", "SELECTOR"]:
                         self.header[cur_line[0]] = int(cur_line[2])
-                    elif cur_line[1] in ['TOGGLE']:
-                        self.header[cur_line[0]] = cur_line[2] == 'T'
-                    elif cur_line[1] == 'TWOPARAM':
+                    elif cur_line[1] in ["TOGGLE"]:
+                        self.header[cur_line[0]] = cur_line[2] == "T"
+                    elif cur_line[1] == "TWOPARAM":
                         self.header[cur_line[0]] = {
-                            'enable': cur_line[2] == 'T',
+                            "enable": cur_line[2] == "T",
                             # locale-friendly alternative to float
-                            'start': locale.atof(cur_line[3]),
+                            "start": locale.atof(cur_line[3]),
                             # locale-friendly alternative to float
-                            'finish': locale.atof(cur_line[4])
+                            "finish": locale.atof(cur_line[4]),
                         }
-                    elif cur_line[0] == 'TAG':
-                        self.header['TAG'] = cur_line[1]
-                    elif cur_line[0] == 'NOTES':
+                    elif cur_line[0] == "TAG":
+                        self.header["TAG"] = cur_line[1]
+                    elif cur_line[0] == "NOTES":
                         n_notes = int(cur_line[2])
-                        note = ''
+                        note = ""
                         for _ in range(n_notes):
-                            note += f.readline().strip() + '\n'
+                            note += f.readline().strip() + "\n"
                         self.header[cur_line[0]] = note
-                    elif cur_line[0] == 'OCVCURVE':
+                    elif cur_line[0] == "OCVCURVE":
                         n_points = int(cur_line[2])
-                        ocv = f.readline().strip() + '\n'  # grab header data
+                        ocv = f.readline().strip() + "\n"  # grab header data
                         f.readline()  # skip second line of header
                         for _ in range(n_points):
-                            ocv += f.readline().strip() + '\n'
-                        ocv = pd.read_csv(StringIO(ocv), '\t',
-                                          header=0, index_col=0)
+                            ocv += f.readline().strip() + "\n"
+                        ocv = pd.read_csv(StringIO(ocv), "\t", header=0, index_col=0)
                         self.ocv = ocv
                         self.ocv_exists = True
 
@@ -191,20 +192,20 @@ class GamryParser:
 
         """
         pos = 0
-        curve = fid.readline().strip() + '\n'  # grab header data
+        curve = fid.readline().strip() + "\n"  # grab header data
         if len(curve) <= 1:
             return [], [], pd.DataFrame()
 
-        units = fid.readline().strip().split('\t')
+        units = fid.readline().strip().split("\t")
         cur_line = fid.readline().strip()
-        while not re.search(r'(CURVE|EXPERIMENTABORTED)', cur_line):
-            curve += cur_line + '\n'
+        while not re.search(r"(CURVE|EXPERIMENTABORTED)", cur_line):
+            curve += cur_line + "\n"
             pos = fid.tell()
             cur_line = fid.readline().strip()
             if fid.tell() == pos:
                 break
 
-        curve = pd.read_csv(StringIO(curve), '\t', header=0, index_col=0)
+        curve = pd.read_csv(StringIO(curve), "\t", header=0, index_col=0)
         keys = curve.columns.values.tolist()
         units = units[1:]
 
@@ -220,12 +221,13 @@ class GamryParser:
 
         """
 
-        assert len(
-            self.header) > 0, "Must read file header before curves can be extracted."
+        assert (
+            len(self.header) > 0
+        ), "Must read file header before curves can be extracted."
         self.curves = []
         self.curve_count = 0
 
-        with open(self.fname, 'r', encoding='utf8', errors='ignore') as f:
+        with open(self.fname, "r", encoding="utf8", errors="ignore") as f:
             f.seek(self.header_length)  # skip to end of header
 
             while True:
@@ -234,10 +236,12 @@ class GamryParser:
                     break
 
                 for key in curve_keys:
-                    nonnumeric_keys = ['Over', ]
+                    nonnumeric_keys = [
+                        "Over",
+                    ]
                     if key in nonnumeric_keys:
                         continue
-                    elif key == 'Pt':
+                    elif key == "Pt":
                         if not is_numeric_dtype(curve.index):
                             curve.index = curve.index.map(int)
                     else:
@@ -245,19 +249,19 @@ class GamryParser:
                             curve[key] = curve[key].map(locale.atof)
 
                 if not bool(self.curve_units.items()):
-                    exp_type = self.header['TAG']
+                    exp_type = self.header["TAG"]
                     for key, unit in zip(curve_keys, curve_units):
                         if exp_type in self.REQUIRED_UNITS.keys():
                             if key in self.REQUIRED_UNITS[exp_type].keys():
-                                assert unit == self.REQUIRED_UNITS[exp_type][key], \
-                                    'Unit error for \'{}\': Expected \'{}\', found \'{}\'!'.format(
-                                        key,
-                                        self.REQUIRED_UNITS[exp_type][key],
-                                        unit)
+                                assert (
+                                    unit == self.REQUIRED_UNITS[exp_type][key]
+                                ), "Unit error for '{}': Expected '{}', found '{}'!".format(
+                                    key, self.REQUIRED_UNITS[exp_type][key], unit
+                                )
                         self.curve_units[key] = unit
                 else:
                     for key, unit in zip(curve_keys, curve_units):
-                        assert self.curve_units[key] == unit, 'Unit mismatch found!'
+                        assert self.curve_units[key] == unit, "Unit mismatch found!"
 
                 self.curves.append(curve)
                 self.curve_count += 1
