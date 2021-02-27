@@ -16,7 +16,7 @@ class TestCyclicVoltammetry(unittest.TestCase):
         self.assertRaises(AssertionError, gp.get_experiment_type)
 
     def test_getters(self):
-        gp = parser.CyclicVoltammetry(filename='tests/cv_data.dta')
+        gp = parser.CyclicVoltammetry(filename="tests/cv_data.dta")
         gp.load()
         vrange = gp.get_v_range()
         self.assertEqual(vrange[0], 0.1)
@@ -25,4 +25,4 @@ class TestCyclicVoltammetry(unittest.TestCase):
         scanrate = gp.get_scan_rate()
         self.assertEqual(scanrate, 1.23456)
         curve = gp.get_curve_data(1)
-        self.assertTrue((curve.columns == ['Vf', 'Im']).all())
+        self.assertTrue((curve.columns == ["Vf", "Im"]).all())

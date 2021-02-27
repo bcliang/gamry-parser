@@ -8,7 +8,7 @@ class OpenCircuitPotential(parser.GamryParser):
     """Load an Open Circuit Potential (CORPOT) experiment generated in Gamry EXPLAIN format."""
 
     def __init__(self, filename=None, to_timestamp=True):
-        """ OpenCircuitPotential.__init__
+        """OpenCircuitPotential.__init__
 
         Args:
             filename (str, optional): filepath containing CORPOT experiment data. Defaults to None
@@ -23,7 +23,7 @@ class OpenCircuitPotential(parser.GamryParser):
         self.to_timestamp = to_timestamp
 
     def get_curve_data(self):
-        """ retrieve OCP data
+        """retrieve OCP data
 
         Args:
             None
@@ -35,9 +35,9 @@ class OpenCircuitPotential(parser.GamryParser):
 
         """
 
-        assert self.loaded, 'DTA file not loaded. Run OpenCircuitPotential.load()'
+        assert self.loaded, "DTA file not loaded. Run OpenCircuitPotential.load()"
         df = self.curves[0]
-        return df[['T', 'Vf']]
+        return df[["T", "Vf"]]
 
     def load(self, filename=None):
         """save experiment information to \"header\", then save curve data to \"curves\"
@@ -55,23 +55,29 @@ class OpenCircuitPotential(parser.GamryParser):
 
         self.loaded = False
         assert self.fname is not None, "GamryParser needs to know what file to parse."
-        assert os.path.exists(
-            self.fname), "The file \'{}\' was not found.".format(self.fname)
+        assert os.path.exists(self.fname), "The file '{}' was not found.".format(
+            self.fname
+        )
 
         self.read_header()
-        assert self.header['TAG'] == "CORPOT", \
-            "This does not appear to be an Open Circuit Potential \
+        assert (
+            self.header["TAG"] == "CORPOT"
+        ), "This does not appear to be an Open Circuit Potential \
             Experiment file (looking for CORPOT, received {})".format(
-                self.header['TAG'])
+            self.header["TAG"]
+        )
 
         self.read_curves()
         if self.to_timestamp:
             "we want data returned with timestamps instead of relative time"
             start_time = pd.to_datetime(
-                self.header['DATE'] + ' ' + self.header['TIME'],
-                dayfirst=bool(re.search(r'[0-9]+\-[0-9]+\-[0-2]{1}[0-9]{3}', self.header['DATE'])))
+                self.header["DATE"] + " " + self.header["TIME"],
+                dayfirst=bool(
+                    re.search(r"[0-9]+\-[0-9]+\-[0-2]{1}[0-9]{3}", self.header["DATE"])
+                ),
+            )
             for curve in self.curves:
-                curve['T'] = (start_time + pd.to_timedelta(curve['T'], 's'))
+                curve["T"] = start_time + pd.to_timedelta(curve["T"], "s")
 
         self.ocv_exists = True
         self.ocv = self.curves[0]
