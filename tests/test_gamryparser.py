@@ -62,6 +62,12 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(curve5['Sig'].iloc[-1], 0.890)
         self.assertEqual(curve5['IERange'].iloc[-1], 5)
 
+    def test_aborted_experiment(self):
+        gp = parser.GamryParser(filename='tests/eispot_data_curveaborted.dta')
+        gp.load()
+        self.assertEqual(gp.curve_count, 1)
+        self.assertEqual(gp.curves[0].shape, (5, 10))
+
     def test_getters(self):
         locale.setlocale(locale.LC_ALL, '')
         gp = parser.GamryParser(filename='tests/cv_data.dta')
