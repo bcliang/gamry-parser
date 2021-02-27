@@ -197,7 +197,7 @@ class GamryParser:
 
         units = fid.readline().strip().split('\t')
         cur_line = fid.readline().strip()
-        while not re.search(r'CURVE', cur_line):
+        while not re.search(r'(CURVE|EXPERIMENTABORTED)', cur_line):
             curve += cur_line + '\n'
             pos = fid.tell()
             cur_line = fid.readline().strip()
