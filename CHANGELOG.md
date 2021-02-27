@@ -5,7 +5,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Fixed
-- [#33](https://github.com/bcliang/gamry-parser/pull/30) Fix pycodestyle errors, make flake8 strict in CI workflow
+- [#33](https://github.com/bcliang/gamry-parser/pull/33) Fix pycodestyle errors, make flake8 strict in CI workflow
+- [#35](https://github.com/bcliang/gamry-parser/pull/35) Fix loading data from aborted experiments
 
 ### Changed
 -
