@@ -5,14 +5,25 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 
 ### Fixed
+- 
+
+### Changed
+- 
+
+### Added
+-
+
+## [0.4.4] - 2021-02-28
+
+### Fixed
 - [#33](https://github.com/bcliang/gamry-parser/pull/33) Fix pycodestyle errors, make flake8 strict in CI workflow
 - [#35](https://github.com/bcliang/gamry-parser/pull/35) Fix loading data from aborted experiments
 
 ### Changed
--
+- 
 
 ### Added
--
+- [#37](https://github.com/bcliang/gamry-parser/pull/37) Impl: Workflow for automated release deployment
 
 ## [0.4.3] - 2020-05-28
 

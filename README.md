@@ -113,11 +113,15 @@ In the future, it would be nice to add support for things like equivalent circui
 
 #### Changelog
 
-See [`CHANGELOG`](CHANGELOG)
+See [`CHANGELOG`](CHANGELOG.md)
 
 ### Tests
 
+[![Unit Tests](https://github.com/bcliang/gamry-parser/actions/workflows/unittest.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/unittest.yml)
+
 Tests extending `unittest.TestCase` may be found in `/tests/`.
+
+Unit tests are triggered as part of every pull request, but users can run tests locally as well:
 
 ```bash
 $ python setup.py test
@@ -125,29 +129,13 @@ $ coverage run --source=gamry_parser/ setup.py test
 $ coverage report -m
 ```
 
-Latest output:
-
-```bash
-$ coverage report -m
-Name                          Stmts   Miss  Cover   Missing
------------------------------------------------------------
-gamry_parser/__init__.py          7      0   100%
-gamry_parser/chronoa.py          23      0   100%
-gamry_parser/cv.py               17      0   100%
-gamry_parser/eispot.py            6      0   100%
-gamry_parser/gamryparser.py     145      3    98%   131, 234-235
-gamry_parser/ocp.py              32      0   100%
-gamry_parser/version.py           1      0   100%
-gamry_parser/vfp600.py           35      0   100%
------------------------------------------------------------
-TOTAL                           266      3    99%
-```
-
 ### Code Guidelines
 
-* PEP8 via `pylint` or `flake8`
+[![Lint](https://github.com/bcliang/gamry-parser/actions/workflows/lint.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/lint.yml)
+
 * [GitHub flow](https://guides.github.com/introduction/flow/) for proposing changes (i.e. create a feature branch and submit a PR against the master branch).
-* Tests: Maintain > 80% line coverage, per file
+* Coding style: Pycodestyle formatting (PEP8). Linting via `black` is run on each push to github.
+* Tests: maintain > 90% line coverage, per file
 
 ### Versioning
 
@@ -156,6 +144,12 @@ TOTAL                           266      3    99%
 2. Any change to the public API (breaking change) will increase a major version.
 
 ### Publishing
+
+[![Publish](https://github.com/bcliang/gamry-parser/actions/workflows/release.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/release.yml)
+
+The package relies on Github Actions to automatically build and upload artifacts to pypi upon published release. 
+
+#### Manual publishing (deprecated)
 
 Use setuptools to build, twine to publish to pypi.
 
@@ -168,4 +162,4 @@ $ twine upload dist/*
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details
