@@ -9,4 +9,4 @@ jobs:
       - uses: actions/setup-python@v2
       - uses: psf/black@stable
         with:
-          args: "gamry_parser demo --check"
+          args: "gamry_parser demo tests --check"
