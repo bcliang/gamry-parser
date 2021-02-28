@@ -1,7 +1,8 @@
 name: Publish
 on:
   release:
-    types: [published]
+    #types: [published]
+    types: [pull_request]
   
 jobs:
   build:
@@ -37,4 +38,6 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
+        # password: ${{ secrets.PYPI_API_TOKEN }}
+        password: ${{ secrets.TESTPYPI_API_TOKEN }}
+        repository_url: https://test.pypi.org/legacy/  # testing repo
