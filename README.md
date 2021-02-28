@@ -113,13 +113,15 @@ In the future, it would be nice to add support for things like equivalent circui
 
 #### Changelog
 
-See [`CHANGELOG`](CHANGELOG)
+See [`CHANGELOG`](CHANGELOG.md)
 
 ### Tests
 
+[![Unit Tests](https://github.com/bcliang/gamry-parser/actions/workflows/unittest.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/unittest.yml)
+
 Tests extending `unittest.TestCase` may be found in `/tests/`.
 
-Unit tests are triggered automatically on every pull request in github, but users can run tests locally as well:
+Unit tests are triggered as part of every pull request, but users can run tests locally as well:
 
 ```bash
 $ python setup.py test
@@ -128,6 +130,8 @@ $ coverage report -m
 ```
 
 ### Code Guidelines
+
+[![Lint](https://github.com/bcliang/gamry-parser/actions/workflows/lint.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/lint.yml)
 
 * [GitHub flow](https://guides.github.com/introduction/flow/) for proposing changes (i.e. create a feature branch and submit a PR against the master branch).
 * Coding style: Pycodestyle formatting (PEP8). Linting via `black` is run on each push to github.
@@ -140,6 +144,8 @@ $ coverage report -m
 2. Any change to the public API (breaking change) will increase a major version.
 
 ### Publishing
+
+[![Publish](https://github.com/bcliang/gamry-parser/actions/workflows/release.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/release.yml)
 
 The package relies on Github Actions to automatically build and upload artifacts to pypi upon published release. 
 
@@ -156,4 +162,4 @@ $ twine upload dist/*
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details
