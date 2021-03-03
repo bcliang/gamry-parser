@@ -62,6 +62,21 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(curve5["Sig"].iloc[-1], 0.890)
         self.assertEqual(curve5["IERange"].iloc[-1], 5)
 
+    def test_use_datetime(self):
+        gp = parser.GamryParser(filename="tests/chronoa_data.dta", to_timestamp=False)
+        gp.load()
+        curve = gp.get_curve_data()
+        # 'T' should return elapsed time in seconds
+        self.assertEqual(curve["T"][0], 0)
+        self.assertEqual(curve["T"].iloc[-1], 270)
+
+        gp = parser.GamryParser(filename="tests/chronoa_data.dta", to_timestamp=True)
+        gp.load()
+        curve = gp.get_curve_data()
+        # 'T' should return datetime objects
+        self.assertEqual(curve["T"][0], pd.to_datetime("3/10/2019 12:00:00"))
+        self.assertEqual(curve["T"].iloc[-1], pd.to_datetime("3/10/2019 12:04:30"))
+
     def test_aborted_experiment(self):
         gp = parser.GamryParser(filename="tests/eispot_data_curveaborted.dta")
         gp.load()
