@@ -6,6 +6,21 @@ import re
 class ChronoAmperometry(parser.GamryParser):
     """Load a ChronoAmperometry experiment generated in Gamry EXPLAIN format."""
 
+    def __init__(self, filename=None, to_timestamp=True):
+        """ChronoAmperometry.__init__
+
+        Args:
+            filename (str, optional): filepath containing CHRONOA experiment data. Defaults to None
+            to_timestamp (bool, optional): Convert sample times from seconds to datetime.datetime.isoformat(). Defaults to True
+
+        Returns:
+            None
+
+        """
+
+        super().__init__(filename=filename)
+        self.to_timestamp = to_timestamp
+
     def get_curve_data(self, curve=0):
         """retrieve chronoamperometry experiment data
 
@@ -50,3 +65,26 @@ class ChronoAmperometry(parser.GamryParser):
 
         assert self.loaded, "DTA file not loaded. Run ChronoAmperometry.load()"
         return len(self.curves[curve - 1].index)
+
+    def load(self, filename=None):
+        """run the parser to load the experimental data from file
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        """
+
+        super().load(filename)
+        if self.to_timestamp:
+            "we want data returned with timestamps instead of relative time"
+            start_time = pd.to_datetime(
+                self.header["DATE"] + " " + self.header["TIME"],
+                dayfirst=bool(
+                    re.search(r"[0-9]+\-[0-9]+\-[0-2]{1}[0-9]{3}", self.header["DATE"])
+                ),
+            )
+            for curve in self.curves:
+                curve["T"] = start_time + pd.to_timedelta(curve["T"], "s")
