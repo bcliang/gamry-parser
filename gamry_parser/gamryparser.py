@@ -9,8 +9,24 @@ from io import StringIO
 class GamryParser:
     """Load experiment data generated in Gamry EXPLAIN format."""
 
-    def __init__(self, filename=None):
-        self.fname = filename
+    fname = None
+    to_timestamp = False
+
+    def __init__(self, filename=None, to_timestamp=None):
+        """GamryParser.__init__
+
+        Args:
+            filename (str, optional): filepath to experiment data. Defaults to None
+            to_timestamp (bool, optional): Convert sample times from elapsed seconds to pandas.Timestamp(). Defaults to False
+
+        Returns:
+            None
+
+        """
+        self.fname = filename if filename is not None else self.fname
+        self.to_timestamp = (
+            to_timestamp if to_timestamp is not None else self.to_timestamp
+        )
         self.header = dict()
         self.header_length = 0
         self.loaded = False
@@ -23,7 +39,7 @@ class GamryParser:
             "CV": {"Vf": "V vs. Ref.", "Im": "A"},
         }
 
-    def load(self, filename=None):
+    def load(self, filename=None, to_timestamp=None):
         """save experiment information to \"header\", then save curve data to \"curves\"
 
         Args:
@@ -33,10 +49,7 @@ class GamryParser:
 
         """
 
-        if filename is not None:
-            # reset
-            self.__init__(filename)
-
+        self.__init__(filename=filename, to_timestamp=to_timestamp)
         self.loaded = False
         assert self.fname is not None, "GamryParser needs to know what file to parse."
         assert os.path.exists(self.fname), "The file '{}' was not found.".format(
@@ -45,7 +58,28 @@ class GamryParser:
 
         self.read_header()
         self.read_curves()
+        if self.to_timestamp:
+            self._convert_T_to_Timestamp()
+
         self.loaded = True
+
+    def _convert_T_to_Timestamp(self):
+        """convert experiment sample elapsed time to absolute time (pd.Timestamp)"
+
+        Args:
+            None
+        Returns:
+            None
+        """
+
+        start_time = pd.to_datetime(
+            self.header["DATE"] + " " + self.header["TIME"],
+            dayfirst=bool(
+                re.search(r"[0-9]+\-[0-9]+\-[0-2]{1}[0-9]{3}", self.header["DATE"])
+            ),
+        )
+        for curve in self.curves:
+            curve["T"] = start_time + pd.to_timedelta(curve["T"], "s")
 
     def get_curve_count(self):
         """return the number of loaded curves"""
