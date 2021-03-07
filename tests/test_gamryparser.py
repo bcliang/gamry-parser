@@ -30,7 +30,7 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(gp.header["CHECKSELECTOR"], 0)
         self.assertFalse(gp.header["CHECKTOGGLE"])
         self.assertTrue(isinstance(gp.header["CHECK2PARAM"], dict))
-        self.assertTrue(gp.header["CHECK2PARAM"].get("enable",False))
+        self.assertTrue(gp.header["CHECK2PARAM"].get("enable", False))
         self.assertEqual(gp.header["CHECK2PARAM"].get("start"), 300)
         self.assertEqual(gp.header["CHECK2PARAM"].get("finish"), 0.5)
 
