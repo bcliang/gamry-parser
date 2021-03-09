@@ -8,7 +8,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - 
 
 ### Changed
-- 
+- [#40](https://github.com/bcliang/gamry-parser/pull/40) Change: GamryParser to_timestamp param #40
+- [#41](https://github.com/bcliang/gamry-parser/pull/40) Use tox as test runner
 
 ### Added
 -

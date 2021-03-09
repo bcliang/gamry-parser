@@ -30,9 +30,13 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(gp.header["CHECKSELECTOR"], 0)
         self.assertFalse(gp.header["CHECKTOGGLE"])
         self.assertTrue(isinstance(gp.header["CHECK2PARAM"], dict))
-        self.assertTrue(gp.header["CHECK2PARAM"]["enable"])
-        self.assertEqual(gp.header["CHECK2PARAM"]["start"], 300)
-        self.assertEqual(gp.header["CHECK2PARAM"]["finish"], 0.5)
+        self.assertTrue(gp.header["CHECK2PARAM"].get("enable", False))
+        self.assertEqual(gp.header["CHECK2PARAM"].get("start"), 300)
+        self.assertEqual(gp.header["CHECK2PARAM"].get("finish"), 0.5)
+
+        gp = parser.GamryParser(filename="tests/cv_data_incompleteheader.dta")
+        _, count = gp.read_header()
+        self.assertEqual(gp.header["DELAY"], dict(enable=False, start=300, finish=0.1))
 
     def test_load(self):
         locale.setlocale(locale.LC_ALL, "")
@@ -52,6 +56,7 @@ class TestGamryParser(unittest.TestCase):
         curve1 = gp.curves[0]
         self.assertEqual(curve1["T"].iloc[0], 0.1)
         self.assertEqual(curve1["T"].iloc[-1], 1.0)
+        self.assertEqual(curve1["Vf"].iloc[-1], 0.5)
         self.assertEqual(curve1.index.dtype, np.int64)
 
         curve5 = gp.curves[-1]

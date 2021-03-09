@@ -1,0 +1,14 @@
+[run]
+branch = True
+source =
+    gamry_parser
+
+omit = 
+    gamry_parser/__init__.py
+    gamry_praser/version.py
+    
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.
+show_missing = True

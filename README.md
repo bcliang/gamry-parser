@@ -124,9 +124,14 @@ Tests extending `unittest.TestCase` may be found in `/tests/`.
 Unit tests are triggered as part of every pull request, but users can run tests locally as well:
 
 ```bash
-$ python setup.py test
-$ coverage run --source=gamry_parser/ setup.py test
-$ coverage report -m
+$ tox
+```
+
+Alternatively, run `pytest` from your virtualenv (use the `-k` flag to filter tests)
+
+```bash
+$ pytest
+$ pytest -v -k "test_getters"
 ```
 
 ### Code Guidelines
