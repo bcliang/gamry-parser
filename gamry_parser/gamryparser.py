@@ -164,7 +164,7 @@ class GamryParser:
         pos = 0
         with open(self.fname, "r", encoding="utf8", errors="ignore") as f:
             cur_line = f.readline().split("\t")
-            while not re.search(r"(^|Z|VFP)CURVE", cur_line[0]):
+            while not re.search(r"(^|Z|VFP|EFM)CURVE", cur_line[0]):
                 if f.tell() == pos:
                     break
 
