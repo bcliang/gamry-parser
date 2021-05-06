@@ -12,7 +12,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - [#41](https://github.com/bcliang/gamry-parser/pull/40) Use tox as test runner
 
 ### Added
--
+- [#42](https://github.com/bcliang/gamry-parser/pull/42) Update read_header function to support EFM140 data Files
 
 ## [0.4.4] - 2021-02-28
 
