@@ -8,11 +8,23 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - 
 
 ### Changed
+- 
+
+### Added
+- 
+
+## [0.4.5] - 2021-05-07
+
+### Fixed
+- 
+
+### Changed
 - [#40](https://github.com/bcliang/gamry-parser/pull/40) Change: GamryParser to_timestamp param #40
 - [#41](https://github.com/bcliang/gamry-parser/pull/41) Use tox as test runner
 
 ### Added
 - [#42](https://github.com/bcliang/gamry-parser/pull/42) Update read_header function to support EFM140 data Files
+- [#43](https://github.com/bcliang/gamry-parser/pull/43) Add Examples: Peak Finding, Impedance
 
 ## [0.4.4] - 2021-02-28
 
