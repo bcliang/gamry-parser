@@ -6,7 +6,7 @@ import re
 class ChronoAmperometry(parser.GamryParser):
     """Load a ChronoAmperometry experiment generated in Gamry EXPLAIN format."""
 
-    def get_curve_data(self, curve=0):
+    def get_curve_data(self, curve: int = 0):
         """retrieve chronoamperometry experiment data
 
         Args:
@@ -37,7 +37,7 @@ class ChronoAmperometry(parser.GamryParser):
         assert self.loaded, "DTA file not loaded. Run ChronoAmperometry.load()"
         return self.header["SAMPLETIME"]
 
-    def get_sample_count(self, curve=0):
+    def get_sample_count(self, curve: int = 0):
         """compute the number of samples collected for the loaded chronoamperometry experiment
 
         Args:

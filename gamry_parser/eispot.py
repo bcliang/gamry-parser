@@ -4,7 +4,7 @@ import gamry_parser as parser
 class Impedance(parser.GamryParser):
     """Load a Potentiostatic EIS experiment generated in Gamry EXPLAIN format."""
 
-    def get_curve_data(self, curve=0):
+    def get_curve_data(self, curve: int = 0):
         """retrieve potentiostatic eis-relevant data
 
         Args:

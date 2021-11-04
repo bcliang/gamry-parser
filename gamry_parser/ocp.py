@@ -24,7 +24,7 @@ class OpenCircuitPotential(parser.GamryParser):
         df = self.curves[0]
         return df[["T", "Vf"]]
 
-    def load(self, filename=None, to_timestamp=None):
+    def load(self, filename: str = None, to_timestamp: bool = None):
         """save experiment information to \"header\", then save curve data to \"curves\"
 
         Args:

@@ -39,7 +39,7 @@ class GamryParser:
             "CV": {"Vf": "V vs. Ref.", "Im": "A"},
         }
 
-    def load(self, filename=None, to_timestamp=None):
+    def load(self, filename: str = None, to_timestamp: bool = None):
         """save experiment information to \"header\", then save curve data to \"curves\"
 
         Args:
@@ -96,7 +96,7 @@ class GamryParser:
         assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return tuple(range(1, self.curve_count + 1))
 
-    def get_curve_data(self, curve=0):
+    def get_curve_data(self, curve: int = 0):
         """retrieve relevant experimental data
 
         Args:
@@ -162,7 +162,7 @@ class GamryParser:
         """
 
         pos = 0
-        with open(self.fname, "r", encoding="utf8", errors="ignore") as f:
+        with open(file=self.fname, mode="r", encoding="utf8", errors="ignore") as f:
             cur_line = f.readline().split("\t")
             while not re.search(r"(^|Z|VFP|EFM)CURVE", cur_line[0]):
                 if f.tell() == pos:
@@ -206,7 +206,9 @@ class GamryParser:
                         f.readline()  # skip second line of header
                         for _ in range(n_points):
                             ocv += f.readline().strip() + "\n"
-                        ocv = pd.read_csv(StringIO(ocv), "\t", header=0, index_col=0)
+                        ocv = pd.read_csv(
+                            StringIO(ocv), delimiter="\t", header=0, index_col=0
+                        )
                         self.ocv = ocv
                         self.ocv_exists = True
 
@@ -214,7 +216,7 @@ class GamryParser:
 
         return self.header, self.header_length
 
-    def read_curve_data(self, fid):
+    def read_curve_data(self, fid: int):
         """helper function to process an EXPLAIN Table
 
         Args:
@@ -239,7 +241,7 @@ class GamryParser:
             if fid.tell() == pos:
                 break
 
-        curve = pd.read_csv(StringIO(curve), "\t", header=0, index_col=0)
+        curve = pd.read_csv(StringIO(curve), delimiter="\t", header=0, index_col=0)
         keys = curve.columns.values.tolist()
         units = units[1:]
 
@@ -261,7 +263,7 @@ class GamryParser:
         self.curves = []
         self.curve_count = 0
 
-        with open(self.fname, "r", encoding="utf8", errors="ignore") as f:
+        with open(file=self.fname, mode="r", encoding="utf8", errors="ignore") as f:
             f.seek(self.header_length)  # skip to end of header
 
             while True:

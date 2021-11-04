@@ -42,7 +42,7 @@ class CyclicVoltammetry(parser.GamryParser):
         ), "DTA header file missing SCANRATE specification"
         return self.header["SCANRATE"]
 
-    def get_curve_data(self, curve=0):
+    def get_curve_data(self, curve: int = 0):
         """retrieve relevant cyclic voltammetry experimental data
 
         Args:
