@@ -9,10 +9,25 @@ from io import StringIO
 class GamryParser:
     """Load experiment data generated in Gamry EXPLAIN format."""
 
-    fname = None
-    to_timestamp = False
+    fname: str = None
+    to_timestamp: bool = False
+    loaded: bool = False
 
-    def __init__(self, filename=None, to_timestamp=None):
+    header_length: int = 0
+    header: dict = None
+    
+    curve_count: int = 0
+    curves: list =  []
+    curve_units: dict = dict()
+    
+    ocv_exists: bool = False
+    ocv: pd.DataFrame = None
+
+    REQUIRED_UNITS: dict = dict(
+        CV = dict(Vf="V vs. Ref.", Im="A")
+    )
+
+    def __init__(self, filename: str = None, to_timestamp: bool = None):
         """GamryParser.__init__
 
         Args:
@@ -27,18 +42,23 @@ class GamryParser:
         self.to_timestamp = (
             to_timestamp if to_timestamp is not None else self.to_timestamp
         )
+        self._reset_props()
+    
+    def _reset_props(self):
+        "re-initialize parser properties"
+
+        self.loaded = False
+        
         self.header = dict()
         self.header_length = 0
-        self.loaded = False
+        
         self.curves = []
         self.curve_count = 0
         self.curve_units = dict()
-        self.ocv = None
-        self.ocv_exists = False
-        self.REQUIRED_UNITS = {
-            "CV": {"Vf": "V vs. Ref.", "Im": "A"},
-        }
 
+        self.ocv_exists = False
+        self.ocv = None
+        
     def load(self, filename: str = None, to_timestamp: bool = None):
         """save experiment information to \"header\", then save curve data to \"curves\"
 
@@ -81,22 +101,22 @@ class GamryParser:
         for curve in self.curves:
             curve["T"] = start_time + pd.to_timedelta(curve["T"], "s")
 
-    def get_curve_count(self):
+    def get_curve_count(self) -> int:
         """return the number of loaded curves"""
         assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return self.curve_count
 
-    def get_curve_indices(self):
+    def get_curve_indices(self) -> tuple:
         """return indices of curves (zero-based indexing)"""
         assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return tuple(range(self.curve_count))
 
-    def get_curve_numbers(self):
+    def get_curve_numbers(self) -> tuple:
         """return Gamry curve numbers (one-based indexing, as in Gamry software)"""
         assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return tuple(range(1, self.curve_count + 1))
 
-    def get_curve_data(self, curve: int = 0):
+    def get_curve_data(self, curve: int = 0) -> pd.DataFrame:
         """retrieve relevant experimental data
 
         Args:
@@ -114,17 +134,17 @@ class GamryParser:
         )
         return self.curves[curve]
 
-    def get_curves(self):
+    def get_curves(self) -> list:
         """return all loaded curves as a list of pandas DataFrames"""
         assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return self.curves
 
-    def get_header(self):
+    def get_header(self) -> list:
         """return the experiment configuration dictionary"""
         assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return self.header
 
-    def get_experiment_type(self):
+    def get_experiment_type(self) -> str:
         """retrieve the type of experiment that was loaded (TAG)
 
         Args:
@@ -136,7 +156,7 @@ class GamryParser:
         assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return self.header["TAG"]
 
-    def get_ocv_curve(self):
+    def get_ocv_curve(self) -> pd.DataFrame:
         """return the contents of OCVCURVE (if it exists). Deprecated in Framework version 7"""
         if self.ocv_exists:
             return self.ocv
@@ -150,7 +170,7 @@ class GamryParser:
         else:
             return None
 
-    def read_header(self):
+    def read_header(self) -> list:
         """helper function to grab data from the EXPLAIN file header, which contains the loaded experiment's configuration
 
         Args:
@@ -216,7 +236,7 @@ class GamryParser:
 
         return self.header, self.header_length
 
-    def read_curve_data(self, fid: int):
+    def read_curve_data(self, fid: int) -> tuple:
         """helper function to process an EXPLAIN Table
 
         Args:
@@ -247,7 +267,7 @@ class GamryParser:
 
         return keys, units, curve
 
-    def read_curves(self):
+    def read_curves(self) -> list:
         """helper function to iterate through curves in a dta file and save as individual dataframes
 
         Args:
