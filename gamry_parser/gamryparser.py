@@ -15,17 +15,15 @@ class GamryParser:
 
     header_length: int = 0
     header: dict = None
-    
+
     curve_count: int = 0
-    curves: list =  []
+    curves: list = []
     curve_units: dict = dict()
-    
+
     ocv_exists: bool = False
     ocv: pd.DataFrame = None
 
-    REQUIRED_UNITS: dict = dict(
-        CV = dict(Vf="V vs. Ref.", Im="A")
-    )
+    REQUIRED_UNITS: dict = dict(CV=dict(Vf="V vs. Ref.", Im="A"))
 
     def __init__(self, filename: str = None, to_timestamp: bool = None):
         """GamryParser.__init__
@@ -43,22 +41,22 @@ class GamryParser:
             to_timestamp if to_timestamp is not None else self.to_timestamp
         )
         self._reset_props()
-    
+
     def _reset_props(self):
         "re-initialize parser properties"
 
         self.loaded = False
-        
+
         self.header = dict()
         self.header_length = 0
-        
+
         self.curves = []
         self.curve_count = 0
         self.curve_units = dict()
 
         self.ocv_exists = False
         self.ocv = None
-        
+
     def load(self, filename: str = None, to_timestamp: bool = None):
         """save experiment information to \"header\", then save curve data to \"curves\"
 

@@ -13,15 +13,18 @@ class SquareWaveVoltammetry(parser.GamryParser):
             None
 
         """
-        super(SquareWaveVoltammetry, self).load(filename = filename, to_timestamp = to_timestamp)
+        super(SquareWaveVoltammetry, self).load(
+            filename=filename, to_timestamp=to_timestamp
+        )
         typecheck = self.header.get("TAG", None)
-        assert typecheck == "SQUARE_WAVE", f"The input file does not contain data from a square wave voltammetry experiment (expected type SQUARE_WAVE, found {typecheck})."
-    
+        assert (
+            typecheck == "SQUARE_WAVE"
+        ), f"The input file does not contain data from a square wave voltammetry experiment (expected type SQUARE_WAVE, found {typecheck})."
 
     @property
     def step_size(self):
         return self.header.get("STEPSIZE", None)
-    
+
     @property
     def pulse_size(self):
         return self.header.get("PULSESIZE", None)
@@ -33,16 +36,14 @@ class SquareWaveVoltammetry(parser.GamryParser):
     @property
     def frequency(self):
         return self.header.get("FREQUENCY", None)
-    
-    
+
     @property
     def v_range(self):
         return (self.header.get("VINIT", 0), self.header.get("VFINAL", 0))
-    
+
     @property
     def cycles(self):
         return self.header.get("CYCLES", 0)
-
 
     def get_curve_data(self, curve: int = 0):
         """retrieve relevant SWV experimental data
