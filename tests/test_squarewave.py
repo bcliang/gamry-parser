@@ -44,7 +44,7 @@ class TestCyclicVoltammetry(unittest.TestCase):
                 curve.columns == ["T", "Vfwd", "Vrev", "Vstep", "Ifwd", "Irev", "Idif"]
             ).all()
         )
-        self.assertEqual(curve.shape, (251, 7))
+        self.assertEqual(curve.shape, (10, 7))
         self.assertEqual(curve["T"].iloc[0], 0.01)
 
         gp.load(to_timestamp=True)
@@ -54,5 +54,5 @@ class TestCyclicVoltammetry(unittest.TestCase):
                 curve.columns == ["T", "Vfwd", "Vrev", "Vstep", "Ifwd", "Irev", "Idif"]
             ).all()
         )
-        self.assertEqual(curve.shape, (251, 7))
+        self.assertEqual(curve.shape, (10, 7))
         self.assertEqual(curve["T"].iloc[0], Timestamp("2021/12/31 12:00:00.01"))
