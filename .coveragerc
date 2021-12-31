@@ -5,7 +5,7 @@ source =
 
 omit = 
     gamry_parser/__init__.py
-    gamry_praser/version.py
+    gamry_parser/version.py
     
 [report]
 exclude_lines =
