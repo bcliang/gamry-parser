@@ -77,10 +77,16 @@ print(ca.get_curve_data())
 
 #### Demos
 
+A simple demonstration is provided in `usage.py`. 
+
+`python usage.py` 
+
 ipython notebook demonstration scripts are included in the `demo` folder.
 
 - `notebook_gamry_parser.ipynb`: Simple example loading data from ChronoA experiment output. Instead of `gamry_parser.GamryParser()`, the parser could be instantiated with `gamry_parser.ChronoAmperometry()`
 - `notebook_cyclicvoltammetry.ipynb`: Example loading data from a CV (cyclic voltammetry) experiment output. Uses the `gamry_parser.CyclicVoltammetry()` subclass.
+- `notebook_cyclicvoltammetry_peakdetect.ipynb`: Another example that demonstrates loading CV data and detecting peaks in the data using `scipy.signal.find_peaks()`
+- `notebook_potentiostatic_eis.ipynb`: Example loading data from an EIS (electrochemical impedance spectroscopy) experiment. Uses the `gamry_parser.Impedance()` subclass.
 
 #### Additional Examples
 

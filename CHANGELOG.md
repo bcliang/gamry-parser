@@ -13,13 +13,24 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - 
 
+## [0.4.6] - 2021-05-07
+
+### Fixed
+- [ed0c932](https://github.com/bcliang/gamry-parser/commit/ed0c93208f5a5ce3b62d5c619e3fd6aa34158b35) Fix: Static typing for class methods, resolve pandas futurewarning
+
+### Changed
+- 
+
+### Added
+- [#45](https://github.com/bcliang/gamry-parser/pull/45) Impl: support for Square Wave Voltammetry experiments
+
 ## [0.4.5] - 2021-05-07
 
 ### Fixed
 - 
 
 ### Changed
-- [#40](https://github.com/bcliang/gamry-parser/pull/40) Change: GamryParser to_timestamp param #40
+- [#40](https://github.com/bcliang/gamry-parser/pull/40) Change: GamryParser to_timestamp param
 - [#41](https://github.com/bcliang/gamry-parser/pull/41) Use tox as test runner
 
 ### Added
