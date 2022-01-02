@@ -3,7 +3,7 @@ from pandas import Timestamp
 import unittest
 
 
-class TestCyclicVoltammetry(unittest.TestCase):
+class TestSquareWaveVoltammetry(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -36,9 +36,9 @@ class TestCyclicVoltammetry(unittest.TestCase):
         self.assertEqual(gp.pulse_size, 25)
         self.assertEqual(gp.pulse_width, 0.01)
         self.assertEqual(gp.cycles, 251)
-        self.assertEqual(gp.get_curve_count(), 1)
+        self.assertEqual(gp.curve_count, 1)
 
-        curve = gp.get_curve_data()
+        curve = gp.curve()
         self.assertTrue(
             (
                 curve.columns == ["T", "Vfwd", "Vrev", "Vstep", "Ifwd", "Irev", "Idif"]
@@ -48,7 +48,7 @@ class TestCyclicVoltammetry(unittest.TestCase):
         self.assertEqual(curve["T"].iloc[0], 0.01)
 
         gp.load(to_timestamp=True)
-        curve = gp.get_curve_data()
+        curve = gp.curve()
         self.assertTrue(
             (
                 curve.columns == ["T", "Vfwd", "Vrev", "Vstep", "Ifwd", "Irev", "Idif"]

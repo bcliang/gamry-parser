@@ -23,29 +23,35 @@ class SquareWaveVoltammetry(parser.GamryParser):
 
     @property
     def step_size(self):
+        """returns the experimental step size, in mV"""
         return self.header.get("STEPSIZE", None)
 
     @property
     def pulse_size(self):
+        """returns the experimental pulse size, in mV"""
         return self.header.get("PULSESIZE", None)
 
     @property
     def pulse_width(self):
+        """returns the experimental pulse "on" time, in seconds"""
         return self.header.get("PULSEON", None)
 
     @property
     def frequency(self):
+        """returns the experimental step frequency, in Hz"""
         return self.header.get("FREQUENCY", None)
 
     @property
     def v_range(self):
+        """returns the potential sweep range of a single voltammetry cycle (tuple, in V)"""
         return (self.header.get("VINIT", 0), self.header.get("VFINAL", 0))
 
     @property
     def cycles(self):
+        """returns the number of voltammetry cycles (#)"""
         return self.header.get("CYCLES", 0)
 
-    def get_curve_data(self, curve: int = 0):
+    def curve(self, curve: int = 0):
         """retrieve relevant SWV experimental data
 
         Args:
@@ -69,6 +75,6 @@ class SquareWaveVoltammetry(parser.GamryParser):
         ), "Invalid curve ({}). File contains {} total curves.".format(
             curve, self.curve_count
         )
-        df = self.curves[curve]
+        df = self._curves[curve]
 
         return df[["T", "Vfwd", "Vrev", "Vstep", "Ifwd", "Irev", "Idif"]]
