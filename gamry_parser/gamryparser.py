@@ -12,16 +12,13 @@ class GamryParser:
     fname: str = None
     to_timestamp: bool = False
     loaded: bool = False
-
-    header_length: int = 0
-    header: dict = None
-
     curve_count: int = 0
-    curves: list = []
-    curve_units: dict = dict()
-
-    ocv_exists: bool = False
-    ocv: pd.DataFrame = None
+    header_length: int = 0
+    
+    _header: dict = None
+    _curves: list = []
+    _curve_units: dict = dict()
+    _ocv: pd.DataFrame = None
 
     REQUIRED_UNITS: dict = dict(CV=dict(Vf="V vs. Ref.", Im="A"))
 
@@ -36,26 +33,25 @@ class GamryParser:
             None
 
         """
+        self._reset_props()
         self.fname = filename if filename is not None else self.fname
         self.to_timestamp = (
             to_timestamp if to_timestamp is not None else self.to_timestamp
         )
-        self._reset_props()
 
     def _reset_props(self):
         "re-initialize parser properties"
 
+        self.fname = None
+        self.to_timestamp = False
         self.loaded = False
-
-        self.header = dict()
-        self.header_length = 0
-
-        self.curves = []
         self.curve_count = 0
-        self.curve_units = dict()
-
-        self.ocv_exists = False
-        self.ocv = None
+        self.header_length = 0
+        
+        self._header = dict()
+        self._curves = []
+        self._curve_units = dict()
+        self._ocv = None
 
     def load(self, filename: str = None, to_timestamp: bool = None):
         """save experiment information to \"header\", then save curve data to \"curves\"
@@ -67,7 +63,7 @@ class GamryParser:
 
         """
 
-        self.__init__(filename=filename, to_timestamp=to_timestamp)
+        self.__init__(filename=filename if filename else self.fname, to_timestamp=to_timestamp if to_timestamp else self.to_timestamp)
         self.loaded = False
         assert self.fname is not None, "GamryParser needs to know what file to parse."
         assert os.path.exists(self.fname), "The file '{}' was not found.".format(
@@ -91,30 +87,25 @@ class GamryParser:
         """
 
         start_time = pd.to_datetime(
-            self.header["DATE"] + " " + self.header["TIME"],
+            self._header["DATE"] + " " + self._header["TIME"],
             dayfirst=bool(
-                re.search(r"[0-9]+\-[0-9]+\-[0-2]{1}[0-9]{3}", self.header["DATE"])
+                re.search(r"[0-9]+\-[0-9]+\-[0-2]{1}[0-9]{3}", self._header["DATE"])
             ),
         )
-        for curve in self.curves:
+        for curve in self._curves:
             curve["T"] = start_time + pd.to_timedelta(curve["T"], "s")
 
-    def get_curve_count(self) -> int:
-        """return the number of loaded curves"""
-        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
-        return self.curve_count
-
-    def get_curve_indices(self) -> tuple:
+    @property
+    def curve_indices(self) -> tuple:
         """return indices of curves (zero-based indexing)"""
-        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
-        return tuple(range(self.curve_count))
+        return tuple(range(self.curve_count)) if self.curve_count else None
 
-    def get_curve_numbers(self) -> tuple:
+    @property
+    def curve_numbers(self) -> tuple:
         """return Gamry curve numbers (one-based indexing, as in Gamry software)"""
-        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
-        return tuple(range(1, self.curve_count + 1))
+        return tuple(range(1, self.curve_count + 1)) if self.curve_count else None
 
-    def get_curve_data(self, curve: int = 0) -> pd.DataFrame:
+    def curve(self, curve: int = 0) -> pd.DataFrame:
         """retrieve relevant experimental data
 
         Args:
@@ -130,19 +121,26 @@ class GamryParser:
         ), "Invalid curve ({}). File contains {} total curves.".format(
             curve, self.curve_count
         )
-        return self.curves[curve]
+        return self._curves[curve]
 
-    def get_curves(self) -> list:
+    @property
+    def curves(self) -> list:
         """return all loaded curves as a list of pandas DataFrames"""
-        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
-        return self.curves
+        # assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
+        return self._curves
 
-    def get_header(self) -> list:
+    @curves.setter
+    def curves(self, val: list):
+        self._curves = val
+
+    @property
+    def header(self) -> list:
         """return the experiment configuration dictionary"""
-        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
-        return self.header
+        # assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
+        return self._header
 
-    def get_experiment_type(self) -> str:
+    @property
+    def experiment_type(self) -> str:
         """retrieve the type of experiment that was loaded (TAG)
 
         Args:
@@ -151,22 +149,17 @@ class GamryParser:
             str: Experiment Type (EXPLAIN-TAG)
 
         """
-        assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
-        return self.header["TAG"]
+        return self._header.get("TAG", None)
 
-    def get_ocv_curve(self) -> pd.DataFrame:
-        """return the contents of OCVCURVE (if it exists). Deprecated in Framework version 7"""
-        if self.ocv_exists:
-            return self.ocv
-        else:
-            return None
-
-    def get_ocv_value(self):
+    @property
+    def ocv(self):
         """return the final OCV measurement of the experiment (if it exists)"""
-        if "EOC" in self.header.keys():
-            return self.header["EOC"]
-        else:
-            return None
+        return self._header.get("EOC", None)
+    
+    @property
+    def ocv_curve(self) -> pd.DataFrame:
+        """return the contents of OCVCURVE (if it exists). Deprecated in Framework version 7"""
+        return self._ocv
 
     def read_header(self) -> list:
         """helper function to grab data from the EXPLAIN file header, which contains the loaded experiment's configuration
@@ -194,16 +187,16 @@ class GamryParser:
                 if len(cur_line) > 1:
                     # data format: key, type, value
                     if cur_line[1] in ["LABEL", "PSTAT"]:
-                        self.header[cur_line[0]] = cur_line[2]
+                        self._header[cur_line[0]] = cur_line[2]
                     elif cur_line[1] in ["QUANT", "IQUANT", "POTEN"]:
                         # locale-friendly alternative to float
-                        self.header[cur_line[0]] = locale.atof(cur_line[2])
+                        self._header[cur_line[0]] = locale.atof(cur_line[2])
                     elif cur_line[1] in ["IQUANT", "SELECTOR"]:
-                        self.header[cur_line[0]] = int(cur_line[2])
+                        self._header[cur_line[0]] = int(cur_line[2])
                     elif cur_line[1] in ["TOGGLE"]:
-                        self.header[cur_line[0]] = cur_line[2] == "T"
+                        self._header[cur_line[0]] = cur_line[2] == "T"
                     elif cur_line[1] == "TWOPARAM":
-                        self.header[cur_line[0]] = {
+                        self._header[cur_line[0]] = {
                             "enable": cur_line[2] == "T",
                             # locale-friendly alternative to float
                             "start": locale.atof(cur_line[3]),
@@ -211,13 +204,13 @@ class GamryParser:
                             "finish": locale.atof(cur_line[4]),
                         }
                     elif cur_line[0] == "TAG":
-                        self.header["TAG"] = cur_line[1]
+                        self._header["TAG"] = cur_line[1]
                     elif cur_line[0] == "NOTES":
                         n_notes = int(cur_line[2])
                         note = ""
                         for _ in range(n_notes):
                             note += f.readline().strip() + "\n"
-                        self.header[cur_line[0]] = note
+                        self._header[cur_line[0]] = note
                     elif cur_line[0] == "OCVCURVE":
                         n_points = int(cur_line[2])
                         ocv = f.readline().strip() + "\n"  # grab header data
@@ -227,14 +220,13 @@ class GamryParser:
                         ocv = pd.read_csv(
                             StringIO(ocv), delimiter="\t", header=0, index_col=0
                         )
-                        self.ocv = ocv
-                        self.ocv_exists = True
+                        self._ocv = ocv
 
             self.header_length = f.tell()
 
-        return self.header, self.header_length
+        return self._header, self.header_length
 
-    def read_curve_data(self, fid: int) -> tuple:
+    def _read_curve_data(self, fid: int) -> tuple:
         """helper function to process an EXPLAIN Table
 
         Args:
@@ -276,16 +268,16 @@ class GamryParser:
         """
 
         assert (
-            len(self.header) > 0
+            len(self._header) > 0
         ), "Must read file header before curves can be extracted."
-        self.curves = []
+        self._curves = []
         self.curve_count = 0
 
         with open(file=self.fname, mode="r", encoding="utf8", errors="ignore") as f:
             f.seek(self.header_length)  # skip to end of header
 
             while True:
-                curve_keys, curve_units, curve = self.read_curve_data(f)
+                curve_keys, curve_units, curve = self._read_curve_data(f)
                 if curve.empty:
                     break
 
@@ -302,8 +294,8 @@ class GamryParser:
                         if not is_numeric_dtype(curve[key]):
                             curve[key] = curve[key].map(locale.atof)
 
-                if not bool(self.curve_units.items()):
-                    exp_type = self.header["TAG"]
+                if not bool(self._curve_units.items()):
+                    exp_type = self._header["TAG"]
                     for key, unit in zip(curve_keys, curve_units):
                         if exp_type in self.REQUIRED_UNITS.keys():
                             if key in self.REQUIRED_UNITS[exp_type].keys():
@@ -312,12 +304,12 @@ class GamryParser:
                                 ), "Unit error for '{}': Expected '{}', found '{}'!".format(
                                     key, self.REQUIRED_UNITS[exp_type][key], unit
                                 )
-                        self.curve_units[key] = unit
+                        self._curve_units[key] = unit
                 else:
                     for key, unit in zip(curve_keys, curve_units):
-                        assert self.curve_units[key] == unit, "Unit mismatch found!"
+                        assert self._curve_units[key] == unit, "Unit mismatch found!"
 
-                self.curves.append(curve)
+                self._curves.append(curve)
                 self.curve_count += 1
 
-        return self.curves
+        return self._curves
