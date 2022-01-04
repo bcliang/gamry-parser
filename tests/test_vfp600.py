@@ -16,7 +16,7 @@ class TestVFP600(unittest.TestCase):
         gp.load("tests/vfp600_data.dta")
         self.assertEqual(gp.fname, "tests/vfp600_data.dta")
         self.assertEqual(gp.experiment_type, "VFP600")
-        
+
         # data file acq frequency = 15hz
         self.assertEqual(gp.sample_time, 1 / 15)
         self.assertEqual(gp.curve_count, 1)

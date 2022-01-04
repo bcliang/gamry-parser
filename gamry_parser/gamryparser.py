@@ -14,7 +14,7 @@ class GamryParser:
     loaded: bool = False
     curve_count: int = 0
     header_length: int = 0
-    
+
     _header: dict = None
     _curves: list = []
     _curve_units: dict = dict()
@@ -47,7 +47,7 @@ class GamryParser:
         self.loaded = False
         self.curve_count = 0
         self.header_length = 0
-        
+
         self._header = dict()
         self._curves = []
         self._curve_units = dict()
@@ -63,7 +63,10 @@ class GamryParser:
 
         """
 
-        self.__init__(filename=filename if filename else self.fname, to_timestamp=to_timestamp if to_timestamp else self.to_timestamp)
+        self.__init__(
+            filename=filename if filename else self.fname,
+            to_timestamp=to_timestamp if to_timestamp else self.to_timestamp,
+        )
         self.loaded = False
         assert self.fname is not None, "GamryParser needs to know what file to parse."
         assert os.path.exists(self.fname), "The file '{}' was not found.".format(
@@ -155,7 +158,7 @@ class GamryParser:
     def ocv(self):
         """return the final OCV measurement of the experiment (if it exists)"""
         return self._header.get("EOC", None)
-    
+
     @property
     def ocv_curve(self) -> pd.DataFrame:
         """return the contents of OCVCURVE (if it exists). Deprecated in Framework version 7"""
