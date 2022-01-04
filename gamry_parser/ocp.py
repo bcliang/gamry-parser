@@ -7,7 +7,7 @@ import re
 class OpenCircuitPotential(parser.GamryParser):
     """Load an Open Circuit Potential (CORPOT) experiment generated in Gamry EXPLAIN format."""
 
-    def get_curve_data(self):
+    def curve(self):
         """retrieve OCP data
 
         Args:
@@ -21,7 +21,7 @@ class OpenCircuitPotential(parser.GamryParser):
         """
 
         assert self.loaded, "DTA file not loaded. Run OpenCircuitPotential.load()"
-        df = self.curves[0]
+        df = self._curves[0]
         return df[["T", "Vf"]]
 
     def load(self, filename: str = None, to_timestamp: bool = None):
@@ -37,18 +37,10 @@ class OpenCircuitPotential(parser.GamryParser):
         super().load(filename=filename, to_timestamp=to_timestamp)
 
         assert (
-            self.header["TAG"] == "CORPOT"
+            self._header.get("TAG", "NOTFOUND") == "CORPOT"
         ), "This does not appear to be an Open Circuit Potential \
             Experiment file (looking for CORPOT, received {})".format(
-            self.header["TAG"]
+            self.header.get("TAG", None)
         )
-        self.ocv_exists = True
-        self.ocv = self.curves[0]
+        self._ocv = self._curves[0]
         self.loaded = True
-
-    def get_ocv_curve(self):
-        """return the contents of OCVCURVE (if it exists). Deprecated in Framework version 7"""
-        if self.ocv_exists:
-            return self.ocv
-        else:
-            return None
