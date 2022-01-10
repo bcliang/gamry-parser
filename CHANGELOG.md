@@ -13,7 +13,18 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - 
 
-## [0.4.6] - 2021-05-07
+## [1.0.0-prerelease] - 2022-01-10
+
+### Fixed
+- 
+
+### Changed
+- [#46](https://github.com/bcliang/gamry-parser/pull/46) Change: class property methods
+
+### Added
+- 
+
+## [0.4.6] - 2022-01-01
 
 ### Fixed
 - [ed0c932](https://github.com/bcliang/gamry-parser/commit/ed0c93208f5a5ce3b62d5c619e3fd6aa34158b35) Fix: Static typing for class methods, resolve pandas futurewarning
