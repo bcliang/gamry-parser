@@ -8,17 +8,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - 
 
 ### Changed
-- 
-
-### Added
-- 
-
-## [1.0.0-prerelease] - 2022-01-10
-
-### Fixed
-- 
-
-### Changed
 - [#46](https://github.com/bcliang/gamry-parser/pull/46) Change: class property methods
 
 ### Added
