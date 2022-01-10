@@ -9,12 +9,12 @@ class TestChronoAmperometry(unittest.TestCase):
 
     def test_getters(self):
         gp = parser.ChronoAmperometry(filename="tests/chronoa_data.dta")
-        self.assertRaises(AssertionError, gp.get_sample_time)
-        self.assertRaises(AssertionError, gp.get_sample_count)
+        self.assertIsNone(gp.sample_time)
+        self.assertEqual(gp.sample_count, 0)
 
         gp.load()
-        curve = gp.get_curve_data()
+        curve = gp.curve()
         self.assertTrue((curve.columns == ["T", "Vf", "Im"]).all())
 
-        self.assertEqual(gp.get_sample_time(), 30)
-        self.assertEqual(gp.get_sample_count(), 10)
+        self.assertEqual(gp.sample_time, 30)
+        self.assertEqual(gp.sample_count, 10)

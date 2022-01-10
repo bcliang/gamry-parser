@@ -4,7 +4,8 @@ import gamry_parser as parser
 class CyclicVoltammetry(parser.GamryParser):
     """Load a Cyclic Voltammetry experiment generated in Gamry EXPLAIN format."""
 
-    def get_v_range(self):
+    @property
+    def v_range(self):
         """retrieve the programmed voltage scan ranges
 
         Args:
@@ -18,31 +19,28 @@ class CyclicVoltammetry(parser.GamryParser):
         """
         assert self.loaded, "DTA file not loaded. Run CyclicVoltammetry.load()"
         assert (
-            "VLIMIT1" in self.header.keys()
+            "VLIMIT1" in self._header.keys()
         ), "DTA header file missing VLIMIT1 specification"
         assert (
-            "VLIMIT2" in self.header.keys()
+            "VLIMIT2" in self._header.keys()
         ), "DTA header file missing VLIMIT2 specification"
 
-        return self.header["VLIMIT1"], self.header["VLIMIT2"]
+        return self._header.get("VLIMIT1", None), self._header.get("VLIMIT2", None)
 
-    def get_scan_rate(self):
+    @property
+    def scan_rate(self):
         """retrieve the programmed scan rate
 
         Args:
             None
 
         Returns:
-            float: the scan rate, in mV/s
+            float: the scan rate, in mV/s (returns None for unknown scan rates)
 
         """
-        assert self.loaded, "DTA file not loaded. Run CyclicVoltammetry.load()"
-        assert (
-            "SCANRATE" in self.header.keys()
-        ), "DTA header file missing SCANRATE specification"
-        return self.header["SCANRATE"]
+        return self._header.get("SCANRATE", None)
 
-    def get_curve_data(self, curve: int = 0):
+    def curve(self, curve: int = 0):
         """retrieve relevant cyclic voltammetry experimental data
 
         Args:
@@ -61,6 +59,6 @@ class CyclicVoltammetry(parser.GamryParser):
         ), "Invalid curve ({}). File contains {} total curves.".format(
             curve, self.curve_count
         )
-        df = self.curves[curve]
+        df = self._curves[curve]
 
         return df[["Vf", "Im"]]

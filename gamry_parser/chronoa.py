@@ -6,7 +6,7 @@ import re
 class ChronoAmperometry(parser.GamryParser):
     """Load a ChronoAmperometry experiment generated in Gamry EXPLAIN format."""
 
-    def get_curve_data(self, curve: int = 0):
+    def curve(self, curve: int = 0):
         """retrieve chronoamperometry experiment data
 
         Args:
@@ -20,10 +20,11 @@ class ChronoAmperometry(parser.GamryParser):
         """
 
         assert self.loaded, "DTA file not loaded. Run ChronoAmperometry.load()"
-        df = self.curves[curve]
+        df = self._curves[curve]
         return df[["T", "Vf", "Im"]]
 
-    def get_sample_time(self):
+    @property
+    def sample_time(self):
         """retrieve the programmed sample period
 
         Args:
@@ -33,11 +34,10 @@ class ChronoAmperometry(parser.GamryParser):
             float: sample period of the potentiostat (in seconds)
 
         """
+        return self._header.get("SAMPLETIME", None)
 
-        assert self.loaded, "DTA file not loaded. Run ChronoAmperometry.load()"
-        return self.header["SAMPLETIME"]
-
-    def get_sample_count(self, curve: int = 0):
+    @property
+    def sample_count(self, curve: int = 0):
         """compute the number of samples collected for the loaded chronoamperometry experiment
 
         Args:
@@ -48,5 +48,4 @@ class ChronoAmperometry(parser.GamryParser):
 
         """
 
-        assert self.loaded, "DTA file not loaded. Run ChronoAmperometry.load()"
-        return len(self.curves[curve - 1].index)
+        return len(self._curves[curve - 1].index) if len(self.curves) > 0 else 0

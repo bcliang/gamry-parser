@@ -11,13 +11,13 @@ class TestImpedance(unittest.TestCase):
         gp.load()
         self.assertEqual(len(gp.curves), 1)
 
-        curve = gp.get_curve_data()
+        curve = gp.curve()
         self.assertTrue(isinstance(curve["Freq"].iloc[-1], float))
 
     def test_getters(self):
         gp = parser.Impedance(filename="tests/eispot_data.dta")
         gp.load()
-        curve = gp.get_curve_data()
+        curve = gp.curve()
         self.assertEqual(len(curve), 10)
         self.assertTrue(
             (curve.columns == ["Freq", "Zreal", "Zimag", "Zmod", "Zphz"]).all()

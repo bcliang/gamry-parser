@@ -33,7 +33,7 @@ class VFP600(parser.GamryParser):
         # No information about experiment time is available with VFP600 files, so no conversion of samples to pd.Timestamp is possible.
         super().load(filename=filename, to_timestamp=False)
 
-    def get_curve_data(self, curve=0):
+    def curve(self, curve=0):
         """retrieve chronoamperometry experiment data
 
         Args:
@@ -47,25 +47,27 @@ class VFP600(parser.GamryParser):
         """
 
         assert self.loaded, "DTA file not loaded. Run ChronoAmperometry.load()"
-        df = self.curves[curve]
-        df["T"] = df.index * self.get_sample_time()
+        df = self._curves[curve]
+        df["T"] = df.index * self.sample_time
         return df[["T", "Voltage", "Current"]]
 
-    def get_sample_time(self):
+    @property
+    def sample_time(self):
         """retrieve the programmed sample period
 
         Args:
             None.
 
         Returns:
-            float: sample period of the potentiostat (in seconds)
+            float: sample period of the potentiostat (in seconds), or 0 if no sample time recorded
 
         """
+        freq = self._header.get("FREQ", None)
 
-        assert self.loaded, "DTA file not loaded. Run ChronoAmperometry.load()"
-        return 1 / self.header["FREQ"]
+        return 1 / freq if freq else 0
 
-    def get_sample_count(self, curve: int = 0):
+    @property
+    def sample_count(self, curve: int = 0):
         """compute the number of samples collected for the loaded chronoamperometry experiment
 
         Args:
@@ -76,10 +78,9 @@ class VFP600(parser.GamryParser):
 
         """
 
-        assert self.loaded, "DTA file not loaded. Run ChronoAmperometry.load()"
-        return len(self.curves[curve - 1].index)
+        return len(self._curves[curve - 1].index) if len(self._curves) > 0 else 0
 
-    def read_curve_data(self, fid: int):
+    def _read_curve_data(self, fid: int):
         """helper function to process an EXPLAIN Table
 
         Args:

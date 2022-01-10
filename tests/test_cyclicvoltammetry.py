@@ -9,20 +9,19 @@ class TestCyclicVoltammetry(unittest.TestCase):
     def test_is_loaded(self):
         gp = parser.CyclicVoltammetry()
         # should raise exception if file not loaded
-        self.assertRaises(AssertionError, gp.get_curve_count)
-        self.assertRaises(AssertionError, gp.get_curve_data, 2)
-        self.assertRaises(AssertionError, gp.get_curves)
-        self.assertRaises(AssertionError, gp.get_scan_rate)
-        self.assertRaises(AssertionError, gp.get_experiment_type)
+        self.assertEqual(gp.curve_count, 0)
+        self.assertRaises(AssertionError, gp.curve, 2)
+        self.assertListEqual(gp.curves, [])
+        self.assertIsNone(gp.scan_rate)
+        self.assertIsNone(gp.experiment_type)
 
     def test_getters(self):
         gp = parser.CyclicVoltammetry(filename="tests/cv_data.dta")
         gp.load()
-        vrange = gp.get_v_range()
+        vrange = gp.v_range
         self.assertEqual(vrange[0], 0.1)
         self.assertEqual(vrange[1], 0.9)
 
-        scanrate = gp.get_scan_rate()
-        self.assertEqual(scanrate, 1.23456)
-        curve = gp.get_curve_data(1)
+        self.assertEqual(gp.scan_rate, 1.23456)
+        curve = gp.curve(curve=1)
         self.assertTrue((curve.columns == ["Vf", "Im"]).all())

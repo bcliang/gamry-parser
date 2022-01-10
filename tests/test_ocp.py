@@ -13,7 +13,7 @@ class TestOpenCircuit(unittest.TestCase):
             filename="tests/ocp_data.dta", to_timestamp=False
         )
         gp.load()
-        curve = gp.get_curve_data()
+        curve = gp.curve()
         # 'T' should return elapsed time in seconds
         self.assertEqual(curve["T"][0], 5.00833)
         self.assertEqual(curve["T"].iloc[-1], 105.175)
@@ -22,7 +22,7 @@ class TestOpenCircuit(unittest.TestCase):
             filename="tests/ocp_data.dta", to_timestamp=True
         )
         gp.load()
-        curve = gp.get_curve_data()
+        curve = gp.curve()
         # 'T' should return datetime objects
         self.assertEqual(curve["T"][0], pd.to_datetime("2020-02-10 17:18:05.008330"))
         self.assertEqual(
@@ -36,7 +36,7 @@ class TestOpenCircuit(unittest.TestCase):
         gp.load()
         self.assertEqual(len(gp.curves), 1)
 
-        curve = gp.get_curve_data()
+        curve = gp.curve()
         for key in curve.keys():
             self.assertTrue(key in ["T", "Vf"])
         self.assertEqual(curve.shape, (21, 2))
@@ -48,7 +48,7 @@ class TestOpenCircuit(unittest.TestCase):
         gp.load(filename="tests/ocp_data.dta")
         self.assertEqual(len(gp.curves), 1)
 
-        curve = gp.get_curve_data()
+        curve = gp.curve()
         for key in curve.keys():
             self.assertTrue(key in ["T", "Vf"])
         self.assertEqual(curve.shape, (21, 2))
@@ -59,12 +59,12 @@ class TestOpenCircuit(unittest.TestCase):
         gp = parser.OpenCircuitPotential(
             filename="tests/ocp_data.dta", to_timestamp=False
         )
-        self.assertIsNone(gp.get_ocv_curve())
+        self.assertIsNone(gp.ocv_curve)
         gp.load()
-        curve = gp.get_curve_data()
-        self.assertEqual(gp.get_curve_count(), 1)
+        curve = gp.curve()
+        self.assertEqual(gp.curve_count, 1)
         self.assertEqual(len(curve), 21)
         self.assertTrue((curve.columns == ["T", "Vf"]).all())
 
         # pandas equivalence check
-        assert_frame_equal(gp.get_ocv_curve(), gp.curves[0])
+        assert_frame_equal(gp.ocv_curve, gp.curves[0])

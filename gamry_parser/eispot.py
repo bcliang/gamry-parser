@@ -4,7 +4,7 @@ import gamry_parser as parser
 class Impedance(parser.GamryParser):
     """Load a Potentiostatic EIS experiment generated in Gamry EXPLAIN format."""
 
-    def get_curve_data(self, curve: int = 0):
+    def curve(self, curve: int = 0):
         """retrieve potentiostatic eis-relevant data
 
         Args:
@@ -21,5 +21,5 @@ class Impedance(parser.GamryParser):
         """
 
         assert self.loaded, "DTA file not loaded. Run Impedance.load()"
-        df = self.curves[curve]
+        df = self._curves[curve]
         return df[["Freq", "Zreal", "Zimag", "Zmod", "Zphz"]]

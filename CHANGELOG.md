@@ -8,7 +8,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - 
 
 ### Changed
-- 
+- [#46](https://github.com/bcliang/gamry-parser/pull/46) Change: class property methods
 
 ### Added
 - 
