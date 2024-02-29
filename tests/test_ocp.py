@@ -1,7 +1,14 @@
+import os
 import pandas as pd
 import gamry_parser as parser
 import unittest
 from pandas.testing import assert_frame_equal
+
+
+FIXTURE_PATH = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_data",
+)
 
 
 class TestOpenCircuit(unittest.TestCase):
@@ -10,7 +17,8 @@ class TestOpenCircuit(unittest.TestCase):
 
     def test_use_datetime(self):
         gp = parser.OpenCircuitPotential(
-            filename="tests/ocp_data.dta", to_timestamp=False
+            filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"), 
+            to_timestamp=False
         )
         gp.load()
         curve = gp.curve()
@@ -19,7 +27,8 @@ class TestOpenCircuit(unittest.TestCase):
         self.assertEqual(curve["T"].iloc[-1], 105.175)
 
         gp = parser.OpenCircuitPotential(
-            filename="tests/ocp_data.dta", to_timestamp=True
+            filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"), 
+            to_timestamp=True
         )
         gp.load()
         curve = gp.curve()
@@ -31,7 +40,8 @@ class TestOpenCircuit(unittest.TestCase):
 
     def test_is_loaded(self):
         gp = parser.OpenCircuitPotential(
-            filename="tests/ocp_data.dta", to_timestamp=False
+            filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"), 
+            to_timestamp=False
         )
         gp.load()
         self.assertEqual(len(gp.curves), 1)
@@ -45,7 +55,7 @@ class TestOpenCircuit(unittest.TestCase):
 
         # no filename at init, only provided at load
         gp = parser.OpenCircuitPotential()
-        gp.load(filename="tests/ocp_data.dta")
+        gp.load(filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"))
         self.assertEqual(len(gp.curves), 1)
 
         curve = gp.curve()
@@ -57,7 +67,8 @@ class TestOpenCircuit(unittest.TestCase):
 
     def test_getters(self):
         gp = parser.OpenCircuitPotential(
-            filename="tests/ocp_data.dta", to_timestamp=False
+            filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"), 
+            to_timestamp=False
         )
         self.assertIsNone(gp.ocv_curve)
         gp.load()
