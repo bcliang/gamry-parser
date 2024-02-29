@@ -1,13 +1,12 @@
-import gamry_parser as parser
+from typing import Optional
 import pandas as pd
-import os
-import re
+import gamry_parser as parser
 
 
 class OpenCircuitPotential(parser.GamryParser):
     """Load an Open Circuit Potential (CORPOT) experiment generated in Gamry EXPLAIN format."""
 
-    def curve(self):
+    def curve(self) -> pd.DataFrame:
         """retrieve OCP data
 
         Args:
@@ -24,7 +23,7 @@ class OpenCircuitPotential(parser.GamryParser):
         df = self._curves[0]
         return df[["T", "Vf"]]
 
-    def load(self, filename: str = None, to_timestamp: bool = None):
+    def load(self, filename: Optional[str] = None, to_timestamp: Optional[bool] = None):
         """save experiment information to \"header\", then save curve data to \"curves\"
 
         Args:

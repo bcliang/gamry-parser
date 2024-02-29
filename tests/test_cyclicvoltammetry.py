@@ -1,5 +1,11 @@
+import os
 import gamry_parser as parser
 import unittest
+
+FIXTURE_PATH = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_data",
+)
 
 
 class TestCyclicVoltammetry(unittest.TestCase):
@@ -16,7 +22,9 @@ class TestCyclicVoltammetry(unittest.TestCase):
         self.assertIsNone(gp.experiment_type)
 
     def test_getters(self):
-        gp = parser.CyclicVoltammetry(filename="tests/cv_data.dta")
+        gp = parser.CyclicVoltammetry(
+            filename=os.path.join(FIXTURE_PATH, "cv_data.dta")
+        )
         gp.load()
         vrange = gp.v_range
         self.assertEqual(vrange[0], 0.1)

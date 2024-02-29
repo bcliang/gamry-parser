@@ -1,14 +1,15 @@
+import os
 import gamry_parser as parser
 import random
 
-file = "tests/cv_data.dta"
+file = os.path.join("tests", "test_data", "cv_data.dta")
 gp = parser.GamryParser()
 gp.load(filename=file)
 print("GamryParser() usage:")
 print("experiment type: {}".format(gp.experiment_type))
 print("loaded curves: {}".format(gp.curve_count))
 
-curve_index = random.randint(1, gp.curve_count)
+curve_index = random.randint(0, gp.curve_count - 1)
 print("showing curve #{}".format(curve_index))
 print(gp.curve(curve_index))
 

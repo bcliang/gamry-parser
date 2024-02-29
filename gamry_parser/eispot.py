@@ -1,10 +1,11 @@
+import pandas as pd
 import gamry_parser as parser
 
 
 class Impedance(parser.GamryParser):
     """Load a Potentiostatic EIS experiment generated in Gamry EXPLAIN format."""
 
-    def curve(self, curve: int = 0):
+    def curve(self, curve: int = 0) -> pd.DataFrame:
         """retrieve potentiostatic eis-relevant data
 
         Args:

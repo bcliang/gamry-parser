@@ -1,6 +1,13 @@
+import os
 import gamry_parser as parser
 from pandas import Timestamp
 import unittest
+
+
+FIXTURE_PATH = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_data",
+)
 
 
 class TestSquareWaveVoltammetry(unittest.TestCase):
@@ -15,7 +22,9 @@ class TestSquareWaveVoltammetry(unittest.TestCase):
 
         # should raise exception if non-swv data is specified
         self.assertRaises(
-            AssertionError, gp.load, filename="test/test_chronoamperometry.dta"
+            AssertionError,
+            gp.load,
+            filename=os.path.join(FIXTURE_PATH, "test_chronoamperometry.dta"),
         )
 
         # should retain nulled values if data is not loaded
@@ -27,7 +36,9 @@ class TestSquareWaveVoltammetry(unittest.TestCase):
         self.assertEqual(gp.cycles, 0)
 
     def test_getters(self):
-        gp = parser.SquareWaveVoltammetry(filename="tests/squarewave_data.dta")
+        gp = parser.SquareWaveVoltammetry(
+            filename=os.path.join(FIXTURE_PATH, "squarewave_data.dta")
+        )
         gp.load()
 
         self.assertTupleEqual(gp.v_range, (0, -0.5))

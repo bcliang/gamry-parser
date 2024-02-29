@@ -1,8 +1,15 @@
+import os
+import numpy as np
 import pandas as pd
 import gamry_parser as parser
-import numpy as np
 import unittest
 import locale
+
+
+FIXTURE_PATH = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_data",
+)
 
 
 class TestGamryParser(unittest.TestCase):
@@ -18,7 +25,7 @@ class TestGamryParser(unittest.TestCase):
         self.assertIsNone(gp.experiment_type)
 
     def test_read_header(self):
-        gp = parser.GamryParser(filename="tests/cv_data.dta")
+        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "cv_data.dta"))
         blob, count = gp.read_header()
         self.assertEqual(count, 789)
         self.assertEqual(gp.header, blob)
@@ -34,7 +41,9 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(gp.header["CHECK2PARAM"].get("start"), 300)
         self.assertEqual(gp.header["CHECK2PARAM"].get("finish"), 0.5)
 
-        gp = parser.GamryParser(filename="tests/cv_data_incompleteheader.dta")
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "cv_data_incompleteheader.dta")
+        )
         _, count = gp.read_header()
         self.assertEqual(gp.header["DELAY"], dict(enable=False, start=300, finish=0.1))
 
@@ -47,10 +56,10 @@ class TestGamryParser(unittest.TestCase):
 
         # file defined, make sure data is loaded properly
         gp = parser.GamryParser()
-        gp.load(filename="tests/cv_data.dta")
-        self.assertEqual(gp.fname, "tests/cv_data.dta")
+        gp.load(filename=os.path.join(FIXTURE_PATH, "cv_data.dta"))
+        self.assertEqual(gp.fname, os.path.join(FIXTURE_PATH, "cv_data.dta"))
 
-        gp = parser.GamryParser(filename="tests/cv_data.dta")
+        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "cv_data.dta"))
         gp.load()
         self.assertEqual(gp.curve_count, 5)
         curve1 = gp._curves[0]
@@ -68,14 +77,18 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(curve5["IERange"].iloc[-1], 5)
 
     def test_use_datetime(self):
-        gp = parser.GamryParser(filename="tests/chronoa_data.dta", to_timestamp=False)
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "chronoa_data.dta"), to_timestamp=False
+        )
         gp.load()
         curve = gp.curve()
         # 'T' should return elapsed time in seconds
         self.assertEqual(curve["T"][0], 0)
         self.assertEqual(curve["T"].iloc[-1], 270)
 
-        gp = parser.GamryParser(filename="tests/chronoa_data.dta", to_timestamp=True)
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "chronoa_data.dta"), to_timestamp=True
+        )
         gp.load()
         curve = gp.curve()
         # 'T' should return datetime objects
@@ -83,14 +96,16 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(curve["T"].iloc[-1], pd.to_datetime("3/10/2019 12:04:30"))
 
     def test_aborted_experiment(self):
-        gp = parser.GamryParser(filename="tests/eispot_data_curveaborted.dta")
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "eispot_data_curveaborted.dta")
+        )
         gp.load()
         self.assertEqual(gp.curve_count, 1)
         self.assertEqual(gp._curves[0].shape, (5, 10))
 
     def test_getters(self):
         locale.setlocale(locale.LC_ALL, "")
-        gp = parser.GamryParser(filename="tests/cv_data.dta")
+        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "cv_data.dta"))
         gp.load()
         self.assertEqual(gp.curve_count, 5)
         self.assertTrue(isinstance(gp.header, dict))
@@ -102,18 +117,20 @@ class TestGamryParser(unittest.TestCase):
 
     def test_indices_and_numbers(self):
         locale.setlocale(locale.LC_ALL, "")
-        gp = parser.GamryParser(filename="tests/cv_data.dta")
+        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "cv_data.dta"))
         gp.load()
         self.assertEqual(gp.curve_indices, (0, 1, 2, 3, 4))
         self.assertEqual(gp.curve_numbers, (1, 2, 3, 4, 5))
 
     def test_ocvcurve_self(self):
         locale.setlocale(locale.LC_ALL, "")
-        gp = parser.GamryParser(filename="tests/cv_data.dta")
+        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "cv_data.dta"))
         gp.load()
         self.assertEqual(gp.ocv_curve, None)
         self.assertEqual(gp.ocv, None)
-        gp = parser.GamryParser(filename="tests/ocvcurve_data.dta")
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "ocvcurve_data.dta")
+        )
         gp.load()
         self.assertEqual(gp.ocv_curve.iloc[0]["T"], 0.258333)
         self.assertEqual(gp.ocv_curve.iloc[-1]["T"], 10.3333)
@@ -124,7 +141,9 @@ class TestGamryParser(unittest.TestCase):
         # confirm that files will load properly with non-US locales
         locale.setlocale(locale.LC_ALL, "de_DE.utf8")
 
-        gp = parser.GamryParser(filename="tests/chronoa_de_data.dta")
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "chronoa_de_data.dta")
+        )
         gp.load()
         curve = gp.curve()
         self.assertEqual(curve["T"].iloc[-1], 270)
@@ -135,7 +154,7 @@ class TestGamryParser(unittest.TestCase):
 
         # confirm that files can load with mismatched locales..
         # pandas.read_csv() will handle 1,234,567.890 notation even in the wrong locale.
-        gp = parser.GamryParser(filename="tests/chronoa_data.dta")
+        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "chronoa_data.dta"))
         gp.load()
         curve = gp.curve()
         self.assertEqual(curve["T"].iloc[-1], 270)
@@ -147,7 +166,9 @@ class TestGamryParser(unittest.TestCase):
         # If parsed with the wrong locale, we should expect data corruption
         # in the resulting dataframe.
         locale.setlocale(locale.LC_ALL, "en_US.utf8")
-        gp = parser.GamryParser(filename="tests/chronoa_de_data.dta")
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "chronoa_de_data.dta")
+        )
         gp.load()
         curve = gp.curve()
         self.assertEqual(curve["Vf"].iloc[0], -50)

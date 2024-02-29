@@ -1,12 +1,13 @@
+from typing import Optional, Union
+import re
 import gamry_parser as parser
 import pandas as pd
-import re
 
 
 class ChronoAmperometry(parser.GamryParser):
     """Load a ChronoAmperometry experiment generated in Gamry EXPLAIN format."""
 
-    def curve(self, curve: int = 0):
+    def curve(self, curve: int = 0) -> pd.DataFrame:
         """retrieve chronoamperometry experiment data
 
         Args:
@@ -24,7 +25,7 @@ class ChronoAmperometry(parser.GamryParser):
         return df[["T", "Vf", "Im"]]
 
     @property
-    def sample_time(self):
+    def sample_time(self) -> Optional[Union[float, int]]:
         """retrieve the programmed sample period
 
         Args:
@@ -37,7 +38,7 @@ class ChronoAmperometry(parser.GamryParser):
         return self._header.get("SAMPLETIME", None)
 
     @property
-    def sample_count(self, curve: int = 0):
+    def sample_count(self, curve: int = 0) -> int:
         """compute the number of samples collected for the loaded chronoamperometry experiment
 
         Args:

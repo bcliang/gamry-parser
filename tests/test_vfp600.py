@@ -1,5 +1,12 @@
+import os
 import gamry_parser as parser
 import unittest
+
+
+FIXTURE_PATH = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    "test_data",
+)
 
 
 class TestVFP600(unittest.TestCase):
@@ -13,8 +20,8 @@ class TestVFP600(unittest.TestCase):
         self.assertEqual(gp.sample_count, 0)
         self.assertEqual(gp.curve_count, 0)
 
-        gp.load("tests/vfp600_data.dta")
-        self.assertEqual(gp.fname, "tests/vfp600_data.dta")
+        gp.load(os.path.join(FIXTURE_PATH, "vfp600_data.dta"))
+        self.assertEqual(gp.fname, os.path.join(FIXTURE_PATH, "vfp600_data.dta"))
         self.assertEqual(gp.experiment_type, "VFP600")
 
         # data file acq frequency = 15hz
@@ -25,7 +32,7 @@ class TestVFP600(unittest.TestCase):
 
     def test_getters(self):
         gp = parser.VFP600()
-        gp.load("tests/vfp600_data.dta")
+        gp.load(os.path.join(FIXTURE_PATH, "vfp600_data.dta"))
 
         curve = gp.curve()
         self.assertTrue((curve.columns == ["T", "Voltage", "Current"]).all())
