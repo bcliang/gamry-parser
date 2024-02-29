@@ -1,28 +1,31 @@
 import pandas as pd
 from pandas.api.types import is_numeric_dtype
+from typing import Optional, Dict, Any, List, Union, Tuple
 import re
 import os
 import locale
-from io import StringIO
+from io import StringIO, TextIOWrapper
 
 
 class GamryParser:
     """Load experiment data generated in Gamry EXPLAIN format."""
 
-    fname: str = None
+    fname: Optional[str] = None
     to_timestamp: bool = False
     loaded: bool = False
     curve_count: int = 0
     header_length: int = 0
 
-    _header: dict = None
-    _curves: list = []
-    _curve_units: dict = dict()
+    _header: Dict[str, Any] = dict()
+    _curves: List[pd.DataFrame] = []
+    _curve_units: Dict[str, str] = dict()
     _ocv: pd.DataFrame = None
 
-    REQUIRED_UNITS: dict = dict(CV=dict(Vf="V vs. Ref.", Im="A"))
+    REQUIRED_UNITS: Dict[str, Dict[str, str]] = dict(CV=dict(Vf="V vs. Ref.", Im="A"))
 
-    def __init__(self, filename: str = None, to_timestamp: bool = None):
+    def __init__(
+        self, filename: Optional[str] = None, to_timestamp: Optional[bool] = None
+    ):
         """GamryParser.__init__
 
         Args:
@@ -53,7 +56,7 @@ class GamryParser:
         self._curve_units = dict()
         self._ocv = None
 
-    def load(self, filename: str = None, to_timestamp: bool = None):
+    def load(self, filename: Optional[str] = None, to_timestamp: Optional[bool] = None):
         """save experiment information to \"header\", then save curve data to \"curves\"
 
         Args:
@@ -99,12 +102,12 @@ class GamryParser:
             curve["T"] = start_time + pd.to_timedelta(curve["T"], "s")
 
     @property
-    def curve_indices(self) -> tuple:
+    def curve_indices(self) -> Union[Tuple[int, ...], None]:
         """return indices of curves (zero-based indexing)"""
         return tuple(range(self.curve_count)) if self.curve_count else None
 
     @property
-    def curve_numbers(self) -> tuple:
+    def curve_numbers(self) -> Union[Tuple[int, ...], None]:
         """return Gamry curve numbers (one-based indexing, as in Gamry software)"""
         return tuple(range(1, self.curve_count + 1)) if self.curve_count else None
 
@@ -127,23 +130,23 @@ class GamryParser:
         return self._curves[curve]
 
     @property
-    def curves(self) -> list:
+    def curves(self) -> List[pd.DataFrame]:
         """return all loaded curves as a list of pandas DataFrames"""
         # assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
         return self._curves
 
     @curves.setter
-    def curves(self, val: list):
+    def curves(self, val: List[pd.DataFrame]):
         self._curves = val
 
     @property
-    def header(self) -> list:
+    def header(self) -> Dict[str, Any]:
         """return the experiment configuration dictionary"""
         # assert self.loaded, "DTA file not loaded. Run GamryParser.load()"
-        return self._header
+        return self._header if self._header else dict()
 
     @property
-    def experiment_type(self) -> str:
+    def experiment_type(self) -> Optional[str]:
         """retrieve the type of experiment that was loaded (TAG)
 
         Args:
@@ -155,7 +158,7 @@ class GamryParser:
         return self._header.get("TAG", None)
 
     @property
-    def ocv(self):
+    def ocv(self) -> Optional[Union[float, int]]:
         """return the final OCV measurement of the experiment (if it exists)"""
         return self._header.get("EOC", None)
 
@@ -164,7 +167,7 @@ class GamryParser:
         """return the contents of OCVCURVE (if it exists). Deprecated in Framework version 7"""
         return self._ocv
 
-    def read_header(self) -> list:
+    def read_header(self) -> Tuple[Dict[str, Any], int]:
         """helper function to grab data from the EXPLAIN file header, which contains the loaded experiment's configuration
 
         Args:
@@ -174,6 +177,8 @@ class GamryParser:
             length (int): length of header text, in # of bytes
 
         """
+
+        assert self.fname, "No filename specified (fname)"
 
         pos = 0
         with open(file=self.fname, mode="r", encoding="utf8", errors="ignore") as f:
@@ -209,8 +214,8 @@ class GamryParser:
                     elif cur_line[0] == "TAG":
                         self._header["TAG"] = cur_line[1]
                     elif cur_line[0] == "NOTES":
-                        n_notes = int(cur_line[2])
-                        note = ""
+                        n_notes: int = int(cur_line[2])
+                        note: str = ""
                         for _ in range(n_notes):
                             note += f.readline().strip() + "\n"
                         self._header[cur_line[0]] = note
@@ -223,13 +228,13 @@ class GamryParser:
                         ocv = pd.read_csv(
                             StringIO(ocv), delimiter="\t", header=0, index_col=0
                         )
-                        self._ocv = ocv
+                        self._ocv: str = ocv
 
             self.header_length = f.tell()
 
         return self._header, self.header_length
 
-    def _read_curve_data(self, fid: int) -> tuple:
+    def _read_curve_data(self, fid: TextIOWrapper) -> Tuple[List[str], List[str], pd.DataFrame]:
         """helper function to process an EXPLAIN Table
 
         Args:
@@ -260,7 +265,7 @@ class GamryParser:
 
         return keys, units, curve
 
-    def read_curves(self) -> list:
+    def read_curves(self) -> List[pd.DataFrame]:
         """helper function to iterate through curves in a dta file and save as individual dataframes
 
         Args:
@@ -273,6 +278,8 @@ class GamryParser:
         assert (
             len(self._header) > 0
         ), "Must read file header before curves can be extracted."
+        assert self.fname, "No filename specified (fname)"
+
         self._curves = []
         self.curve_count = 0
 

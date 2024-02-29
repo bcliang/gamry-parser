@@ -1,3 +1,5 @@
+from typing import Tuple, Optional, Union
+import pandas as pd
 import gamry_parser as parser
 
 
@@ -5,7 +7,9 @@ class CyclicVoltammetry(parser.GamryParser):
     """Load a Cyclic Voltammetry experiment generated in Gamry EXPLAIN format."""
 
     @property
-    def v_range(self):
+    def v_range(
+        self,
+    ) -> Tuple[Optional[Union[float, int]], Optional[Union[float, int]]]:
         """retrieve the programmed voltage scan ranges
 
         Args:
@@ -28,7 +32,7 @@ class CyclicVoltammetry(parser.GamryParser):
         return self._header.get("VLIMIT1", None), self._header.get("VLIMIT2", None)
 
     @property
-    def scan_rate(self):
+    def scan_rate(self) -> Optional[Union[float, int]]:
         """retrieve the programmed scan rate
 
         Args:
@@ -40,7 +44,7 @@ class CyclicVoltammetry(parser.GamryParser):
         """
         return self._header.get("SCANRATE", None)
 
-    def curve(self, curve: int = 0):
+    def curve(self, curve: int = 0) -> pd.DataFrame:
         """retrieve relevant cyclic voltammetry experimental data
 
         Args:
