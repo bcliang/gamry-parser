@@ -7,6 +7,7 @@ FIXTURE_PATH = os.path.join(
     "test_data",
 )
 
+
 class TestCyclicVoltammetry(unittest.TestCase):
     def setUp(self):
         pass
@@ -21,7 +22,9 @@ class TestCyclicVoltammetry(unittest.TestCase):
         self.assertIsNone(gp.experiment_type)
 
     def test_getters(self):
-        gp = parser.CyclicVoltammetry(filename=os.path.join(FIXTURE_PATH, "cv_data.dta"))
+        gp = parser.CyclicVoltammetry(
+            filename=os.path.join(FIXTURE_PATH, "cv_data.dta")
+        )
         gp.load()
         vrange = gp.v_range
         self.assertEqual(vrange[0], 0.1)

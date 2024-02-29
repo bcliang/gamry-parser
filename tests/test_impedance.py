@@ -7,6 +7,7 @@ FIXTURE_PATH = os.path.join(
     "test_data",
 )
 
+
 class TestImpedance(unittest.TestCase):
     def setUp(self):
         pass

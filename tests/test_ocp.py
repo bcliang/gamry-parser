@@ -17,8 +17,7 @@ class TestOpenCircuit(unittest.TestCase):
 
     def test_use_datetime(self):
         gp = parser.OpenCircuitPotential(
-            filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"), 
-            to_timestamp=False
+            filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"), to_timestamp=False
         )
         gp.load()
         curve = gp.curve()
@@ -27,8 +26,7 @@ class TestOpenCircuit(unittest.TestCase):
         self.assertEqual(curve["T"].iloc[-1], 105.175)
 
         gp = parser.OpenCircuitPotential(
-            filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"), 
-            to_timestamp=True
+            filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"), to_timestamp=True
         )
         gp.load()
         curve = gp.curve()
@@ -40,8 +38,7 @@ class TestOpenCircuit(unittest.TestCase):
 
     def test_is_loaded(self):
         gp = parser.OpenCircuitPotential(
-            filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"), 
-            to_timestamp=False
+            filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"), to_timestamp=False
         )
         gp.load()
         self.assertEqual(len(gp.curves), 1)
@@ -67,8 +64,7 @@ class TestOpenCircuit(unittest.TestCase):
 
     def test_getters(self):
         gp = parser.OpenCircuitPotential(
-            filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"), 
-            to_timestamp=False
+            filename=os.path.join(FIXTURE_PATH, "ocp_data.dta"), to_timestamp=False
         )
         self.assertIsNone(gp.ocv_curve)
         gp.load()

@@ -234,7 +234,9 @@ class GamryParser:
 
         return self._header, self.header_length
 
-    def _read_curve_data(self, fid: TextIOWrapper) -> Tuple[List[str], List[str], pd.DataFrame]:
+    def _read_curve_data(
+        self, fid: TextIOWrapper
+    ) -> Tuple[List[str], List[str], pd.DataFrame]:
         """helper function to process an EXPLAIN Table
 
         Args:

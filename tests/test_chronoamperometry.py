@@ -9,12 +9,15 @@ FIXTURE_PATH = os.path.join(
     "test_data",
 )
 
+
 class TestChronoAmperometry(unittest.TestCase):
     def setUp(self):
         pass
 
     def test_getters(self):
-        gp = parser.ChronoAmperometry(filename=os.path.join(FIXTURE_PATH, "chronoa_data.dta"))
+        gp = parser.ChronoAmperometry(
+            filename=os.path.join(FIXTURE_PATH, "chronoa_data.dta")
+        )
         self.assertIsNone(gp.sample_time)
         self.assertEqual(gp.sample_count, 0)
 

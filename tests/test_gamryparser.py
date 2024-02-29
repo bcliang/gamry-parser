@@ -41,7 +41,9 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(gp.header["CHECK2PARAM"].get("start"), 300)
         self.assertEqual(gp.header["CHECK2PARAM"].get("finish"), 0.5)
 
-        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "cv_data_incompleteheader.dta"))
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "cv_data_incompleteheader.dta")
+        )
         _, count = gp.read_header()
         self.assertEqual(gp.header["DELAY"], dict(enable=False, start=300, finish=0.1))
 
@@ -75,14 +77,18 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(curve5["IERange"].iloc[-1], 5)
 
     def test_use_datetime(self):
-        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "chronoa_data.dta"), to_timestamp=False)
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "chronoa_data.dta"), to_timestamp=False
+        )
         gp.load()
         curve = gp.curve()
         # 'T' should return elapsed time in seconds
         self.assertEqual(curve["T"][0], 0)
         self.assertEqual(curve["T"].iloc[-1], 270)
 
-        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "chronoa_data.dta"), to_timestamp=True)
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "chronoa_data.dta"), to_timestamp=True
+        )
         gp.load()
         curve = gp.curve()
         # 'T' should return datetime objects
@@ -90,7 +96,9 @@ class TestGamryParser(unittest.TestCase):
         self.assertEqual(curve["T"].iloc[-1], pd.to_datetime("3/10/2019 12:04:30"))
 
     def test_aborted_experiment(self):
-        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "eispot_data_curveaborted.dta"))
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "eispot_data_curveaborted.dta")
+        )
         gp.load()
         self.assertEqual(gp.curve_count, 1)
         self.assertEqual(gp._curves[0].shape, (5, 10))
@@ -120,7 +128,9 @@ class TestGamryParser(unittest.TestCase):
         gp.load()
         self.assertEqual(gp.ocv_curve, None)
         self.assertEqual(gp.ocv, None)
-        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "ocvcurve_data.dta"))
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "ocvcurve_data.dta")
+        )
         gp.load()
         self.assertEqual(gp.ocv_curve.iloc[0]["T"], 0.258333)
         self.assertEqual(gp.ocv_curve.iloc[-1]["T"], 10.3333)
@@ -131,7 +141,9 @@ class TestGamryParser(unittest.TestCase):
         # confirm that files will load properly with non-US locales
         locale.setlocale(locale.LC_ALL, "de_DE.utf8")
 
-        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "chronoa_de_data.dta"))
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "chronoa_de_data.dta")
+        )
         gp.load()
         curve = gp.curve()
         self.assertEqual(curve["T"].iloc[-1], 270)
@@ -154,7 +166,9 @@ class TestGamryParser(unittest.TestCase):
         # If parsed with the wrong locale, we should expect data corruption
         # in the resulting dataframe.
         locale.setlocale(locale.LC_ALL, "en_US.utf8")
-        gp = parser.GamryParser(filename=os.path.join(FIXTURE_PATH, "chronoa_de_data.dta"))
+        gp = parser.GamryParser(
+            filename=os.path.join(FIXTURE_PATH, "chronoa_de_data.dta")
+        )
         gp.load()
         curve = gp.curve()
         self.assertEqual(curve["Vf"].iloc[0], -50)
