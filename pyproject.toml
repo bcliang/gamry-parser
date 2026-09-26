@@ -1,3 +1,51 @@
+[project]
+name = "gamry-parser"
+version = "1.0.0"
+description = "Parse Gamry EXPLAIN (DTA) files into polars DataFrames."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Brad Liang", email = "brad.liang@percusense.com" }]
+requires-python = ">=3.12"
+keywords = ["gamry", "electrochemistry", "EXPLAIN", "DTA", "parser", "polars"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Chemistry",
+]
+dependencies = ["polars>=1.0"]
+
+[project.optional-dependencies]
+pandas = ["pandas>=2.2.2", "pyarrow>=16"]
+
+[project.urls]
+Homepage = "https://github.com/bcliang/gamry-parser"
+Changelog = "https://github.com/bcliang/gamry-parser/blob/master/CHANGELOG.md"
+
+[dependency-groups]
+dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0", "pandas>=2.2.2", "pyarrow>=16"]
+demo = ["matplotlib>=3.8", "scipy>=1.12", "ipykernel>=6.29", "nbconvert>=7.16"]
+
 [build-system]
-# Minimum requirements for the build system to execute.
-requires = ["setuptools", "wheel"]  # PEP 508 specifications.
+requires = ["uv_build>=0.12.0,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.pytest]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["gamry_parser"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 90
