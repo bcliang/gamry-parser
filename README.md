@@ -1,15 +1,15 @@
 # gamry-parser
 
+Parse Gamry EXPLAIN (DTA) files into [polars](https://pola.rs) DataFrames.
+
+Version 1.0 replaces the 0.x API: `gp.read(path)` replaces `GamryParser(...).load()`, and curves are polars
+DataFrames instead of pandas. See [Migrating from 0.x](#migrating-from-0x), or pin `gamry-parser<1` to keep the old API.
+
 [![PyPI](https://img.shields.io/pypi/v/gamry-parser.svg)](https://pypi.org/project/gamry-parser/)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gamry-parser.svg)
 [![PyPI - License](https://img.shields.io/pypi/l/gamry-parser.svg)](./LICENSE)
 [![Tests](https://github.com/bcliang/gamry-parser/actions/workflows/test.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/test.yml)
 [![Lint](https://github.com/bcliang/gamry-parser/actions/workflows/lint.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/lint.yml)
-
-Parse Gamry EXPLAIN (DTA) files into [polars](https://pola.rs) DataFrames.
-
-Version 1.0 replaces the 0.x API: `gp.read(path)` replaces `GamryParser(...).load()`, and curves are polars
-DataFrames instead of pandas. See [Migrating from 0.x](#migrating-from-0x), or pin `gamry-parser<1` to keep the old API.
 
 ## Installation
 

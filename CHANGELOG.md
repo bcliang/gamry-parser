@@ -2,7 +2,7 @@
 
 Notable changes to gamry-parser, newest first. The project follows [Semantic Versioning](https://semver.org/).
 
-## [1.0.0] - Unreleased
+## [1.0.0] - 2026-09-26 [#51](https://github.com/bcliang/gamry-parser/pull/51)
 
 ### Changed
 - Breaking: `gamry_parser.read(path)` replaces `GamryParser(...).load()`. It returns an immutable `Experiment` subclass
