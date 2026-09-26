@@ -117,6 +117,10 @@ def test_timestamps_need_a_numeric_t_column(tmp_path):
         ("2021-12-31", "12:00:00", datetime(2021, 12, 31, 12)),
         ("2021/12/31", "12:00:00", datetime(2021, 12, 31, 12)),
         ("3/6/2019", "4:35:22 PM", datetime(2019, 3, 6, 16, 35, 22)),
+        ("25/3/2019", "17:18:00", datetime(2019, 3, 25, 17, 18)),
+        ("3-25-2019", "17:18:00", datetime(2019, 3, 25, 17, 18)),
+        ("3/6/19", "12:00:00", datetime(2019, 3, 6, 12)),
+        ("3/6/99", "12:00:00", datetime(1999, 3, 6, 12)),
     ],
 )
 def test_start_time_formats(tmp_path, date, time, expected):

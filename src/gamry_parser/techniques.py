@@ -1,7 +1,6 @@
 """Experiment types with technique-specific columns and header properties."""
 
 from collections.abc import Mapping
-from dataclasses import replace
 from pathlib import Path
 from typing import ClassVar, Self
 
@@ -40,11 +39,6 @@ class ChronoAmperometry(Experiment):
         """Programmed sample period, in s."""
         return self._float("SAMPLETIME")
 
-    @property
-    def sample_count(self) -> int:
-        """Number of samples across all curves."""
-        return sum(curve.height for curve in self.curves)
-
 
 class Impedance(Experiment):
     """Potentiostatic EIS (TAG EISPOT)."""
@@ -61,7 +55,8 @@ class OpenCircuitPotential(Experiment):
 
     @classmethod
     def _from_parsed(cls, path: Path, parsed: ParsedFile) -> Self:
-        return replace(super()._from_parsed(path, parsed), ocv_curve=parsed.curves[0] if parsed.curves else None)
+        ocv_curve = parsed.curves[0] if parsed.curves else None
+        return cls(path=path, header=parsed.header, units=parsed.units, curves=parsed.curves, ocv_curve=ocv_curve)
 
 
 class SquareWaveVoltammetry(Experiment):
@@ -113,11 +108,6 @@ class VFP600(Experiment):
         """Sample period (1 / FREQ), in s."""
         frequency = self._float("FREQ")
         return 1 / frequency if frequency else None
-
-    @property
-    def sample_count(self) -> int:
-        """Number of samples across all curves."""
-        return sum(curve.height for curve in self.curves)
 
     def _curve_frame(self, index: int) -> pl.DataFrame:
         frame = self.curves[index]

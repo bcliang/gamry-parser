@@ -13,13 +13,7 @@ import polars as pl
 from ._dta import GamryParseError, HeaderValue, ParsedFile, parse
 
 _REMOVED = "{name} was removed in gamry-parser 1.0; use gamry_parser.read(path)"
-_DATE_FORMATS = (
-    (re.compile(r"\d{1,2}/\d{1,2}/\d{4}"), "%m/%d/%Y"),
-    (re.compile(r"\d{1,2}-\d{1,2}-\d{4}"), "%d-%m-%Y"),
-    (re.compile(r"\d{1,2}\.\d{1,2}\.\d{4}"), "%d.%m.%Y"),
-    (re.compile(r"\d{4}-\d{1,2}-\d{1,2}"), "%Y-%m-%d"),
-    (re.compile(r"\d{4}/\d{1,2}/\d{1,2}"), "%Y/%m/%d"),
-)
+_DATE = re.compile(r"(\d{4}|\d{1,2})([/.-])(\d{1,2})\2(\d{4}|\d{1,2})")
 _TIME = re.compile(r"(\d{1,2}):(\d{2}):(\d{2})(?:\s*([AaPp])\.?[Mm]\.?)?")
 
 
@@ -48,7 +42,7 @@ class Experiment:
 
     def __init_subclass__(cls, **kwargs: object) -> None:
         super().__init_subclass__(**kwargs)
-        for tag in cls.TAGS:
+        for tag in cls.__dict__.get("TAGS", ()):
             _REGISTRY[tag] = cls
 
     @classmethod
@@ -89,6 +83,11 @@ class Experiment:
     @property
     def curve_count(self) -> int:
         return len(self.curves)
+
+    @property
+    def sample_count(self) -> int:
+        """Number of rows across all curves."""
+        return sum(curve.height for curve in self.curves)
 
     @property
     def ocv(self) -> float | None:
@@ -154,14 +153,28 @@ def GamryParser(*args: object, **kwargs: object) -> NoReturn:
 
 
 def _parse_datetime(date: str, time: str) -> datetime:
-    date_format = next((date_format for pattern, date_format in _DATE_FORMATS if pattern.fullmatch(date)), None)
+    date_match = _DATE.fullmatch(date.strip())
     time_match = _TIME.fullmatch(time.strip())
-    if date_format is None or time_match is None:
+    if date_match is None or time_match is None:
         raise GamryParseError(f"cannot parse DATE {date!r} and TIME {time!r}")
     hour, minute, second = (int(part) for part in time_match.group(1, 2, 3))
     if time_match[4]:
         hour = hour % 12 + (12 if time_match[4] in "Pp" else 0)
     try:
-        return datetime.strptime(date, date_format).replace(hour=hour, minute=minute, second=second)
+        return datetime(*_date_parts(date_match), hour, minute, second)
     except ValueError as error:
         raise GamryParseError(f"cannot parse DATE {date!r} and TIME {time!r}") from error
+
+
+def _date_parts(match: re.Match[str]) -> tuple[int, int, int]:
+    """Year, month and day. Slash dates are month first, dash and dot dates day first, unless the month exceeds 12."""
+    first, separator, middle, last = match.groups()
+    if len(first) == 4:
+        return int(first), int(middle), int(last)
+    year = int(last)
+    if len(last) == 2:
+        year += 2000 if year < 69 else 1900
+    month, day = (int(first), int(middle)) if separator == "/" else (int(middle), int(first))
+    if month > 12 >= day:
+        month, day = day, month
+    return year, month, day

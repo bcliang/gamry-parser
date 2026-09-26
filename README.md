@@ -41,14 +41,15 @@ exp.curves  # every curve with every column, including Pt
 | TAG | Class | `curve()` columns | Properties |
 |---|---|---|---|
 | `CV` | `CyclicVoltammetry` | Vf, Im | `v_range`, `scan_rate` |
-| `CHRONOA` | `ChronoAmperometry` | T, Vf, Im | `sample_time`, `sample_count` |
+| `CHRONOA` | `ChronoAmperometry` | T, Vf, Im | `sample_time` |
 | `EISPOT` | `Impedance` | Freq, Zreal, Zimag, Zmod, Zphz | |
 | `CORPOT` | `OpenCircuitPotential` | T, Vf | |
 | `SQUARE_WAVE` | `SquareWaveVoltammetry` | T, Vfwd, Vrev, Vstep, Ifwd, Irev, Idif | `step_size`, `pulse_size`, `pulse_width`, `frequency`, `v_range`, `cycles` |
-| `VFP600` | `VFP600` | T, Voltage, Current | `sample_time`, `sample_count` |
+| `VFP600` | `VFP600` | T, Voltage, Current | `sample_time` |
 | anything else | `Experiment` | all columns | |
 
-Every class also has `ocv` (the EOC header field) and `ocv_curve` (the OCVCURVE table, if the file has one).
+Every class also has `ocv` (the EOC header field), `ocv_curve` (the OCVCURVE table, if the file has one) and
+`sample_count` (rows across all curves).
 Properties return `None` when the header field is missing.
 
 To require one experiment type, call `read` on its class. It raises `GamryParseError` for any other TAG:

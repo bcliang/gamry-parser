@@ -33,6 +33,19 @@ def test_subclass_without_tags_names_the_missing_tags(data_dir):
         Unregistered.read(data_dir / "cv_data.dta")
 
 
+def test_user_subclasses_do_not_replace_dispatch(data_dir):
+    class MyCV(gp.CyclicVoltammetry):
+        pass
+
+    assert type(gp.read(data_dir / "cv_data.dta")) is gp.CyclicVoltammetry
+    assert type(MyCV.read(data_dir / "cv_data.dta")) is MyCV
+
+
+def test_sample_count_counts_rows_across_curves(data_dir):
+    assert gp.read(data_dir / "cv_data.dta").sample_count == 50
+    assert gp.read(data_dir / "eispot_data.dta").sample_count == 10
+
+
 @pytest.mark.parametrize("cls", [cls for _, cls in TECHNIQUES])
 def test_0x_constructors_raise(cls):
     with pytest.raises(TypeError, match=rf"{cls.__name__}\(filename=\.\.\.\)\.load\(\) was removed"):
