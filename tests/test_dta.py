@@ -270,3 +270,25 @@ def test_vfp600_fixture_has_no_pt_column(data_dir):
     parsed = parse((data_dir / "vfp600_data.dta").read_bytes())
     assert parsed.units == {"Voltage": "V", "Current": "A"}
     assert parsed.curves[0].shape == (20, 2)
+
+
+def test_quote_characters_are_plain_text():
+    parsed = parse(
+        dta("EXPLAIN", "TAG\tCV", "CURVE\tTABLE", "\tPt\tVf\tOver", "\t#\tV\tbits", '\t0\t0.5\t"..a', "\t1\t0.6\t..b")
+    )
+    assert parsed.curves[0]["Over"].to_list() == ['"..a', "..b"]
+    assert parsed.curves[0]["Vf"].to_list() == [0.5, 0.6]
+
+
+def test_curve_table_cut_off_before_its_column_line_is_skipped():
+    aborted = ("CURVE2\tTABLE", "EXPERIMENTABORTED\tTOGGLE\tT\tExperiment Aborted")
+    parsed = parse(dta("EXPLAIN", "TAG\tCV", *CURVE, "\t0\t0\t0.5\t1e-9\t5\t..", *aborted))
+    assert [curve.height for curve in parsed.curves] == [1]
+    assert parsed.header["EXPERIMENTABORTED"] is True
+
+
+def test_curve_table_cut_off_before_its_units_line_is_skipped():
+    aborted = ("CURVE2\tTABLE", "\tPt\tT\tVf\tIm\tIERange\tOver", "EXPERIMENTABORTED\tTOGGLE\tT\tExperiment Aborted")
+    parsed = parse(dta("EXPLAIN", "TAG\tCV", *CURVE, "\t0\t0\t0.5\t1e-9\t5\t..", *aborted))
+    assert [curve.height for curve in parsed.curves] == [1]
+    assert parsed.units["Vf"] == "V vs. Ref."

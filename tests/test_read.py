@@ -95,6 +95,13 @@ def test_timestamps_need_a_t_column(data_dir):
         gp.read(data_dir / "eispot_data.dta").curve(timestamps=True)
 
 
+def test_timestamps_need_a_numeric_t_column(tmp_path):
+    text = "EXPLAIN\nTAG\tMYSTERY\nDATE\tLABEL\t3/6/2019\tDate\nTIME\tLABEL\t12:00:00\tTime\n"
+    exp = gp.read(write(tmp_path, text + "CURVE\tTABLE\n\tPt\tT\n\t#\ts\n\t0\tabc\n"))
+    with pytest.raises(gp.GamryParseError, match="T column is not numeric"):
+        exp.curve(timestamps=True)
+
+
 @pytest.mark.parametrize(
     ("date", "time", "expected"),
     [
@@ -109,6 +116,21 @@ def test_timestamps_need_a_t_column(data_dir):
 def test_start_time_formats(tmp_path, date, time, expected):
     exp = gp.read(write(tmp_path, f"EXPLAIN\nTAG\tMYSTERY\nDATE\tLABEL\t{date}\tDate\nTIME\tLABEL\t{time}\tTime\n"))
     assert exp.start_time == expected
+
+
+@pytest.mark.parametrize("name", ["de_DE.UTF-8", "zh_CN.UTF-8"])
+def test_12_hour_time_ignores_the_process_locale(tmp_path, name):
+    path = write(tmp_path, "EXPLAIN\nTAG\tMYSTERY\nDATE\tLABEL\t3/6/2019\tDate\nTIME\tLABEL\t4:35:22 PM\tTime\n")
+    previous = locale.setlocale(locale.LC_ALL)
+    try:
+        locale.setlocale(locale.LC_ALL, name)
+    except locale.Error:
+        pytest.skip(f"locale {name} is not installed")
+    try:
+        start = gp.read(path).start_time
+    finally:
+        locale.setlocale(locale.LC_ALL, previous)
+    assert start == datetime(2019, 3, 6, 16, 35, 22)
 
 
 def test_unparseable_date_raises_on_access(tmp_path):
@@ -173,3 +195,9 @@ def test_curves_convert_to_pandas(data_dir):
 def test_removed_api_raises(call):
     with pytest.raises(TypeError, match=r"removed in gamry-parser 1\.0; use gamry_parser\.read\(path\)"):
         call()
+
+
+def test_unrecognised_time_raises_on_access(tmp_path):
+    exp = gp.read(write(tmp_path, "EXPLAIN\nTAG\tMYSTERY\nDATE\tLABEL\t3/6/2019\tDate\nTIME\tLABEL\tnoon\tTime\n"))
+    with pytest.raises(gp.GamryParseError, match="TIME 'noon'"):
+        _ = exp.start_time

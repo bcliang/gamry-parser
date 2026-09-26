@@ -51,6 +51,8 @@ def parse(data: bytes, decimal_comma: bool | None = None) -> ParsedFile:
             ocv_curve, _ = _read_table(body, decimal_comma)
         elif _CURVE_KEY.search(key):
             curve, curve_units = _read_table(body, decimal_comma)
+            if not curve_units:
+                continue
             if not curves:
                 units = curve_units
             elif curve_units != units:
@@ -73,7 +75,7 @@ def _split(text: str) -> tuple[list[str], list[tuple[str, str]]]:
     pos = 0
     while (match := _TABLE_LINE.search(text, pos)) is not None:
         lines.extend(text[pos : match.start()].splitlines())
-        end = _TABLE_END.search(text, match.end())
+        end = _TABLE_END.search(text, match.end() - 1)
         pos = end.start() + 1 if end else len(text)
         tables.append((match[1], text[match.end() : pos]))
     lines.extend(text[pos:].splitlines())
@@ -151,6 +153,7 @@ def _read_table(body: str, decimal_comma: bool) -> tuple[pl.DataFrame, dict[str,
         rows.encode(),
         separator="\t",
         has_header=False,
+        quote_char=None,
         decimal_comma=decimal_comma,
         truncate_ragged_lines=True,
     )

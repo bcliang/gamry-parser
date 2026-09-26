@@ -20,7 +20,7 @@ _DATE_FORMATS = (
     (re.compile(r"\d{4}-\d{1,2}-\d{1,2}"), "%Y-%m-%d"),
     (re.compile(r"\d{4}/\d{1,2}/\d{1,2}"), "%Y/%m/%d"),
 )
-_TIME_FORMATS = ("%H:%M:%S", "%I:%M:%S %p")
+_TIME = re.compile(r"(\d{1,2}):(\d{2}):(\d{2})(?:\s*([AaPp])\.?[Mm]\.?)?")
 
 
 @dataclass(frozen=True, kw_only=True, eq=False)
@@ -122,6 +122,8 @@ class Experiment:
             raise GamryParseError(f"{self.path.name} has no DATE/TIME header; cannot compute timestamps")
         if "T" not in frame.columns:
             raise GamryParseError(f"{self.path.name}: curve has no T column; cannot compute timestamps")
+        if not frame.schema["T"].is_numeric():
+            raise GamryParseError(f"{self.path.name}: T column is not numeric; cannot compute timestamps")
         elapsed = pl.duration(microseconds=(pl.col("T") * 1_000_000).round().cast(pl.Int64))
         return frame.with_columns(T=pl.lit(start) + elapsed)
 
@@ -148,12 +150,14 @@ def GamryParser(*args: object, **kwargs: object) -> NoReturn:
 
 
 def _parse_datetime(date: str, time: str) -> datetime:
-    for pattern, date_format in _DATE_FORMATS:
-        if pattern.fullmatch(date):
-            for time_format in _TIME_FORMATS:
-                try:
-                    return datetime.strptime(f"{date} {time}", f"{date_format} {time_format}")
-                except ValueError:
-                    continue
-            break
-    raise GamryParseError(f"cannot parse DATE {date!r} and TIME {time!r}")
+    date_format = next((date_format for pattern, date_format in _DATE_FORMATS if pattern.fullmatch(date)), None)
+    time_match = _TIME.fullmatch(time.strip())
+    if date_format is None or time_match is None:
+        raise GamryParseError(f"cannot parse DATE {date!r} and TIME {time!r}")
+    hour, minute, second = (int(part) for part in time_match.group(1, 2, 3))
+    if time_match[4]:
+        hour = hour % 12 + (12 if time_match[4] in "Pp" else 0)
+    try:
+        return datetime.strptime(date, date_format).replace(hour=hour, minute=minute, second=second)
+    except ValueError as error:
+        raise GamryParseError(f"cannot parse DATE {date!r} and TIME {time!r}") from error
