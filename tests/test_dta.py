@@ -1,3 +1,4 @@
+import dataclasses
 import json
 
 import polars as pl
@@ -48,13 +49,17 @@ def test_header_value_types():
     assert isinstance(header["CYCLES"], int)
     assert isinstance(header["PSTATMODEL"], int)
     assert header["CONDIT"].start == 300.0
-    assert header["CONDIT"]["start"] == 300.0
-    with pytest.raises(AttributeError):
+    with pytest.raises(dataclasses.FrozenInstanceError):
         header["CONDIT"].start = 1.0
     with pytest.raises(TypeError):
-        header["CONDIT"]["start"] = 1.0
-    assert json.loads(json.dumps(header["CONDIT"])) == {"enable": True, "start": 300.0, "finish": 0.5}
-    assert repr(header["CONDIT"]) == "TwoParam(enable=True, start=300.0, finish=0.5)"
+        TwoParam(enable=True, start=1.0, finish=2.0, extra=3.0)
+
+
+def test_two_param_round_trips_through_json():
+    value = TwoParam(enable=True, start=300.0, finish=0.5)
+    encoded = json.dumps({"CONDIT": value}, default=dataclasses.asdict)
+    assert json.loads(encoded) == {"CONDIT": {"enable": True, "start": 300.0, "finish": 0.5}}
+    assert TwoParam(**json.loads(encoded)["CONDIT"]) == value
 
 
 def test_notes_are_the_following_lines_joined():

@@ -23,25 +23,13 @@ class ReadOnlyDict(dict):
         return type(self), (dict(self),)
 
 
-class TwoParam(ReadOnlyDict):
+@dataclass(frozen=True, slots=True)
+class TwoParam:
     """A TWOPARAM header value: an on/off flag with two numbers, e.g. conditioning time and potential."""
 
-    __slots__ = ()
-
-    @property
-    def enable(self) -> bool:
-        return self["enable"]
-
-    @property
-    def start(self) -> float:
-        return self["start"]
-
-    @property
-    def finish(self) -> float:
-        return self["finish"]
-
-    def __repr__(self) -> str:
-        return f"TwoParam(enable={self.enable!r}, start={self.start!r}, finish={self.finish!r})"
+    enable: bool
+    start: float
+    finish: float
 
 
 type HeaderValue = str | float | int | bool | TwoParam

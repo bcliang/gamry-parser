@@ -37,7 +37,9 @@ exp.curves  # every curve with every column, including Pt
 ```
 
 Header values are typed from the file's field types: `str`, `float`, `int`, `bool`, or, for `TWOPARAM` fields such as
-`CONDIT`, a read-only `TwoParam` mapping with `enable`, `start` and `finish` attributes.
+`CONDIT`, a frozen `TwoParam` dataclass with `enable`, `start` and `finish`. `header` and `units` are read-only
+mappings; `json.dumps(exp.header, default=dataclasses.asdict)` serializes a header, and `TwoParam(**value)` rebuilds
+a field from the loaded JSON.
 
 `read()` returns the class registered for the file's TAG:
 
