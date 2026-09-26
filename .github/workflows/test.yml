@@ -1,0 +1,31 @@
+name: Tests
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+        resolution: [locked]
+        include:
+          - python-version: "3.12"
+            resolution: lowest-direct
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Generate de_DE and en_US locales
+        run: sudo locale-gen de_DE.UTF-8 en_US.UTF-8
+      - name: Install locked dependencies
+        if: matrix.resolution == 'locked'
+        run: uv sync --locked
+      - name: Install lowest direct dependencies
+        if: matrix.resolution == 'lowest-direct'
+        run: uv sync --resolution lowest-direct
+      - run: uv run --no-sync pytest --cov
