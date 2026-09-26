@@ -103,7 +103,7 @@ class SquareWaveVoltammetry(Experiment):
 
 
 class VFP600(Experiment):
-    """Data from the Gamry VFP600 LabView front end (TAG VFP600). T is computed from FREQ."""
+    """Data from the Gamry VFP600 LabView front end (TAG VFP600). `curve()` computes T from FREQ."""
 
     TAGS = frozenset({"VFP600"})
     COLUMNS = ("T", "Voltage", "Current")

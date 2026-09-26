@@ -76,7 +76,7 @@ def test_impedance(data_dir):
     assert curve.columns == ["Freq", "Zreal", "Zimag", "Zmod", "Zphz"]
     assert curve.height == 10
     assert curve["Freq"][-1] == 0.5
-    assert z.units["Zphz"] == "°"
+    assert z.units["Zphz"] == "\N{DEGREE SIGN}"
 
 
 def test_open_circuit_potential(data_dir):

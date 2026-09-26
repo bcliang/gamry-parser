@@ -48,7 +48,7 @@ exp.curves  # every curve with every column, including Pt
 Every class also has `ocv` (the EOC header field) and `ocv_curve` (the OCVCURVE table, if the file has one).
 Properties return `None` when the header field is missing.
 
-To insist on one experiment type, call `read` on its class. It raises `GamryParseError` for any other TAG:
+To require one experiment type, call `read` on its class. It raises `GamryParseError` for any other TAG:
 
 ```python
 cv = gp.CyclicVoltammetry.read("cv.dta")
@@ -66,8 +66,8 @@ gp.read("chronoa.dta").curve(timestamps=True)
 
 ### Decimal commas
 
-Files written on systems that use a decimal comma (`5,00000E-001`) are detected automatically, whatever the locale of
-the machine reading them. To override the detection, pass `gp.read(path, decimal_comma=True)`.
+`read()` detects files written with a decimal comma (`5,00000E-001`), whatever the locale of the machine reading
+them. To override detection, pass `decimal_comma=True` or `decimal_comma=False`.
 
 ### pandas
 
@@ -93,7 +93,7 @@ parse, including any file without a `TAG` header line. `curve(i)` raises `IndexE
 | `p.fname`, `p.loaded` | `exp.path` |
 | `AssertionError` | `GamryParseError`, `IndexError`, `FileNotFoundError` |
 
-Calling a 0.x constructor raises `TypeError` with a pointer to `read()`.
+Calling a 0.x constructor raises a `TypeError` that names `read()` as the replacement.
 
 ## Examples
 
@@ -110,9 +110,9 @@ uv run --group demo --with jupyterlab jupyter lab demo/
 git clone git@github.com:bcliang/gamry-parser.git
 cd gamry-parser
 uv sync                  # create .venv with the dev dependencies
-uv run pytest --cov      # tests and coverage
-uvx ruff check           # lint
-uvx ruff format          # format
+uv run pytest --cov
+uvx ruff check
+uvx ruff format
 uv build                 # sdist and wheel in dist/
 ```
 
@@ -125,12 +125,12 @@ tests/             pytest suite; fixtures in tests/data/
 demo/              example notebooks
 ```
 
-Propose changes as pull requests against `master`. CI runs ruff and the tests on Python 3.12–3.14, and the test run
-fails if total branch coverage drops below 90%.
+Propose changes as pull requests against `master`. CI runs ruff and the tests on Python 3.12 to 3.14, and the test
+run fails if total branch coverage drops below 90%.
 
 ## Related projects
 
-For equivalent-circuit modelling of EIS data, see [impedance.py](https://github.com/ECSHackWeek/impedance.py) and
+For equivalent-circuit modeling of EIS data, see [impedance.py](https://github.com/ECSHackWeek/impedance.py) and
 [PyEIS](https://github.com/kbknudsen/PyEIS).
 
 ## Changelog
