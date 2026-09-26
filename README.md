@@ -8,6 +8,9 @@
 
 Parse Gamry EXPLAIN (DTA) files into [polars](https://pola.rs) DataFrames.
 
+Version 1.0 replaces the 0.x API: `gp.read(path)` replaces `GamryParser(...).load()`, and curves are polars
+DataFrames instead of pandas. See [Migrating from 0.x](#migrating-from-0x), or pin `gamry-parser<1` to keep the old API.
+
 ## Installation
 
 ```bash
