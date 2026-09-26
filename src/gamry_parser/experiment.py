@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from types import MappingProxyType
 from typing import ClassVar, NoReturn, Self
 
 import polars as pl
@@ -26,8 +27,8 @@ class Experiment:
     REQUIRED_UNITS: ClassVar[Mapping[str, str]] = {}
 
     path: Path
-    header: dict[str, HeaderValue]
-    units: dict[str, str]
+    header: Mapping[str, HeaderValue]
+    units: Mapping[str, str]
     curves: tuple[pl.DataFrame, ...]
     ocv_curve: pl.DataFrame | None
 
@@ -36,9 +37,21 @@ class Experiment:
             raise TypeError(_REMOVED.format(name=f"{cls.__name__}(filename=...).load()"))
         return super().__new__(cls)
 
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "header", MappingProxyType(dict(self.header)))
+        object.__setattr__(self, "units", MappingProxyType(dict(self.units)))
+
     def __getnewargs_ex__(self) -> tuple[tuple[()], dict[str, object]]:
         """Arguments pickle and copy pass to `__new__`."""
         return (), {"path": self.path}
+
+    def __getstate__(self) -> dict[str, object]:
+        """State for pickle and copy, with header and units as plain dicts."""
+        return {**self.__dict__, "header": dict(self.header), "units": dict(self.units)}
+
+    def __setstate__(self, state: dict[str, object]) -> None:
+        self.__dict__.update(state)
+        self.__post_init__()
 
     def __init_subclass__(cls, **kwargs: object) -> None:
         super().__init_subclass__(**kwargs)

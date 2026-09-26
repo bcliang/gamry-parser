@@ -178,12 +178,31 @@ def test_experiment_is_immutable(data_dir):
         exp.header = {}
 
 
+def test_header_and_units_are_read_only(data_dir):
+    exp = gp.read(data_dir / "cv_data.dta")
+    with pytest.raises(TypeError):
+        exp.header["TAG"] = "EISPOT"
+    with pytest.raises(TypeError):
+        exp.units["Vf"] = "mV"
+    assert exp.header["TAG"] == "CV"
+    assert exp.units["Vf"] == "V vs. Ref."
+
+
+def test_replace_keeps_header_read_only(data_dir):
+    exp = dataclasses.replace(gp.read(data_dir / "cv_data.dta"), header={"TAG": "CV", "SCANRATE": 2.0})
+    assert exp.scan_rate == 2.0
+    with pytest.raises(TypeError):
+        exp.header["SCANRATE"] = 3.0
+
+
 def test_experiment_survives_pickle_and_copy(data_dir):
     exp = gp.read(data_dir / "ocvcurve_data.dta")
     for clone in (pickle.loads(pickle.dumps(exp)), copy.deepcopy(exp), copy.copy(exp)):
         assert type(clone) is type(exp)
         assert clone.header == exp.header
         assert clone.curves[0].equals(exp.curves[0])
+        with pytest.raises(TypeError):
+            clone.header["TAG"] = "EISPOT"
 
 
 def test_curves_convert_to_pandas(data_dir):
