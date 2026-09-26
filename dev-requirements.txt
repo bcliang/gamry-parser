@@ -1,4 +1,0 @@
-setuptools
-pytest
-tox
-coverage 
