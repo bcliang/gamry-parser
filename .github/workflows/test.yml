@@ -30,7 +30,7 @@ jobs:
         run: uv sync --resolution lowest-direct
       - run: uv run --no-sync pytest --cov
       - name: Write coverage to the job summary
-        if: success() || failure()
+        if: (success() || failure()) && matrix.python-version == '3.14' && matrix.resolution == 'locked'
         run: |
-          echo "### Coverage: Python ${{ matrix.python-version }}, ${{ matrix.resolution }} dependencies" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Coverage (Python 3.14)" >> "$GITHUB_STEP_SUMMARY"
           uv run --no-sync coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
