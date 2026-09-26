@@ -2,6 +2,7 @@
 
 import re
 from dataclasses import dataclass
+from typing import NoReturn
 
 import polars as pl
 
@@ -10,13 +11,37 @@ class GamryParseError(ValueError):
     """Raised when a DTA file cannot be parsed."""
 
 
-@dataclass(frozen=True, slots=True)
-class TwoParam:
+class ReadOnlyDict(dict):
+    """A dict that rejects changes after construction."""
+
+    def _blocked(self, *args: object, **kwargs: object) -> NoReturn:
+        raise TypeError(f"{type(self).__name__} does not support item assignment or deletion")
+
+    __setitem__ = __delitem__ = __ior__ = clear = pop = popitem = setdefault = update = _blocked
+
+    def __reduce__(self) -> tuple[type, tuple[dict]]:
+        return type(self), (dict(self),)
+
+
+class TwoParam(ReadOnlyDict):
     """A TWOPARAM header value: an on/off flag with two numbers, e.g. conditioning time and potential."""
 
-    enable: bool
-    start: float
-    finish: float
+    __slots__ = ()
+
+    @property
+    def enable(self) -> bool:
+        return self["enable"]
+
+    @property
+    def start(self) -> float:
+        return self["start"]
+
+    @property
+    def finish(self) -> float:
+        return self["finish"]
+
+    def __repr__(self) -> str:
+        return f"TwoParam(enable={self.enable!r}, start={self.start!r}, finish={self.finish!r})"
 
 
 type HeaderValue = str | float | int | bool | TwoParam

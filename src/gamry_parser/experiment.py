@@ -10,23 +10,11 @@ from typing import ClassVar, NoReturn, Self
 
 import polars as pl
 
-from ._dta import GamryParseError, HeaderValue, ParsedFile, parse
+from ._dta import GamryParseError, HeaderValue, ParsedFile, ReadOnlyDict, parse
 
 _REMOVED = "{name} was removed in gamry-parser 1.0; use gamry_parser.read(path)"
 _DATE = re.compile(r"(\d{4}|\d{1,2})([/.-])(\d{1,2})\2(\d{4}|\d{2})")
 _TIME = re.compile(r"(\d{1,2}):(\d{2}):(\d{2})(?:\s*([AaPp])\.?[Mm]\.?)?")
-
-
-class ReadOnlyDict(dict):
-    """A dict that rejects changes after construction."""
-
-    def _blocked(self, *args: object, **kwargs: object) -> NoReturn:
-        raise TypeError(f"{type(self).__name__} does not support item assignment or deletion")
-
-    __setitem__ = __delitem__ = __ior__ = clear = pop = popitem = setdefault = update = _blocked
-
-    def __reduce__(self) -> tuple[type, tuple[dict]]:
-        return type(self), (dict(self),)
 
 
 @dataclass(frozen=True, kw_only=True, eq=False)

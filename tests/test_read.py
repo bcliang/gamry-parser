@@ -157,7 +157,8 @@ def test_header_copies_and_converts_like_a_dict(data_dir):
     assert clone == exp.header
     with pytest.raises(TypeError):
         clone["TAG"] = "EISPOT"
-    assert json.loads(json.dumps(dataclasses.asdict(exp)["header"]))["SCANRATE"] == 1.23456
+    assert json.loads(json.dumps(exp.header))["CHECK2PARAM"] == {"enable": True, "start": 300.0, "finish": 0.5}
+    assert dataclasses.asdict(exp)["header"]["CHECK2PARAM"] == exp.header["CHECK2PARAM"]
     assert json.loads(json.dumps(dict(exp.units)))["Vf"] == "V vs. Ref."
 
 

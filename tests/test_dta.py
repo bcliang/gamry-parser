@@ -1,4 +1,4 @@
-import dataclasses
+import json
 
 import polars as pl
 import pytest
@@ -48,8 +48,13 @@ def test_header_value_types():
     assert isinstance(header["CYCLES"], int)
     assert isinstance(header["PSTATMODEL"], int)
     assert header["CONDIT"].start == 300.0
-    with pytest.raises(dataclasses.FrozenInstanceError):
+    assert header["CONDIT"]["start"] == 300.0
+    with pytest.raises(AttributeError):
         header["CONDIT"].start = 1.0
+    with pytest.raises(TypeError):
+        header["CONDIT"]["start"] = 1.0
+    assert json.loads(json.dumps(header["CONDIT"])) == {"enable": True, "start": 300.0, "finish": 0.5}
+    assert repr(header["CONDIT"]) == "TwoParam(enable=True, start=300.0, finish=0.5)"
 
 
 def test_notes_are_the_following_lines_joined():
