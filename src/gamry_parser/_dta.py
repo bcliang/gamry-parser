@@ -2,7 +2,6 @@
 
 import re
 from dataclasses import dataclass
-from functools import partial
 
 import polars as pl
 
@@ -41,7 +40,7 @@ _UNIT_DTYPES: dict[str, type[pl.DataType]] = {"#": pl.Int64, "bits": pl.String}
 
 def parse(data: bytes, decimal_comma: bool | None = None) -> ParsedFile:
     """Parse the bytes of a DTA file. `decimal_comma=None` detects the decimal separator."""
-    lines, tables = _split(_decode(data).replace("\r\n", "\n"))
+    lines, tables = _split(_decode(data).replace("\r\n", "\n").replace("\r", "\n"))
     if decimal_comma is None:
         decimal_comma = _detect_decimal_comma(lines, tables)
     header = _parse_header(lines, decimal_comma)
@@ -146,34 +145,23 @@ def _parse_header(lines: list[str], decimal_comma: bool) -> dict[str, HeaderValu
 def _read_table(body: str, decimal_comma: bool) -> tuple[pl.DataFrame, dict[str, str]]:
     """Read a table body (column names, units, rows) into a frame and a column-to-unit map."""
     names_line, units_line, rows = [*body.split("\n", 2), "", ""][:3]
-    names = names_line.split("\t")[1:]
+    names = names_line.rstrip("\t").split("\t")[1:]
+    if "" in names:
+        raise GamryParseError("empty column name in table")
     if len(set(names)) != len(names):
         raise GamryParseError(f"duplicate column {next(name for name in names if names.count(name) > 1)!r}")
     units = dict(zip(names, units_line.split("\t")[1:], strict=False))
     schema = {"": pl.String} | {name: _UNIT_DTYPES.get(units.get(name, ""), pl.Float64) for name in names}
     if not rows.strip():
         return pl.DataFrame(schema=schema).drop(""), units
-    read = partial(
-        pl.read_csv,
+    frame = pl.read_csv(
         rows.encode(),
         separator="\t",
         has_header=False,
         quote_char=None,
         decimal_comma=decimal_comma,
         truncate_ragged_lines=True,
+        schema=schema,
+        ignore_errors=True,
     )
-    try:
-        frame = read(schema=schema)
-    except pl.exceptions.ComputeError:
-        frame = read(new_columns=list(schema), infer_schema_length=None)
-        frame = frame.with_columns(_as_declared(frame[name], dtype, decimal_comma) for name, dtype in schema.items())
     return frame.drop(""), units
-
-
-def _as_declared(column: pl.Series, dtype: type[pl.DataType], decimal_comma: bool) -> pl.Series:
-    """Cast a text column to its declared numeric dtype, nulling cells that do not parse; keep text if none parse."""
-    if dtype is pl.String or column.dtype != pl.String:
-        return column
-    text = column.str.replace(",", ".", literal=True) if decimal_comma else column
-    cast = text.cast(dtype, strict=False)
-    return column if cast.null_count() == column.len() else cast

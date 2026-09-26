@@ -6,7 +6,6 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from types import MappingProxyType
 from typing import ClassVar, NoReturn, Self
 
 import polars as pl
@@ -14,8 +13,20 @@ import polars as pl
 from ._dta import GamryParseError, HeaderValue, ParsedFile, parse
 
 _REMOVED = "{name} was removed in gamry-parser 1.0; use gamry_parser.read(path)"
-_DATE = re.compile(r"(\d{4}|\d{1,2})([/.-])(\d{1,2})\2(\d{4}|\d{1,2})")
+_DATE = re.compile(r"(\d{4}|\d{1,2})([/.-])(\d{1,2})\2(\d{4}|\d{2})")
 _TIME = re.compile(r"(\d{1,2}):(\d{2}):(\d{2})(?:\s*([AaPp])\.?[Mm]\.?)?")
+
+
+class ReadOnlyDict(dict):
+    """A dict that rejects changes after construction."""
+
+    def _blocked(self, *args: object, **kwargs: object) -> NoReturn:
+        raise TypeError(f"{type(self).__name__} does not support item assignment or deletion")
+
+    __setitem__ = __delitem__ = __ior__ = clear = pop = popitem = setdefault = update = _blocked
+
+    def __reduce__(self) -> tuple[type, tuple[dict]]:
+        return type(self), (dict(self),)
 
 
 @dataclass(frozen=True, kw_only=True, eq=False)
@@ -38,20 +49,12 @@ class Experiment:
         return super().__new__(cls)
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "header", MappingProxyType(dict(self.header)))
-        object.__setattr__(self, "units", MappingProxyType(dict(self.units)))
+        object.__setattr__(self, "header", ReadOnlyDict(self.header))
+        object.__setattr__(self, "units", ReadOnlyDict(self.units))
 
     def __getnewargs_ex__(self) -> tuple[tuple[()], dict[str, object]]:
         """Arguments pickle and copy pass to `__new__`."""
         return (), {"path": self.path}
-
-    def __getstate__(self) -> dict[str, object]:
-        """State for pickle and copy, with header and units as plain dicts."""
-        return {**self.__dict__, "header": dict(self.header), "units": dict(self.units)}
-
-    def __setstate__(self, state: dict[str, object]) -> None:
-        self.__dict__.update(state)
-        self.__post_init__()
 
     def __init_subclass__(cls, **kwargs: object) -> None:
         super().__init_subclass__(**kwargs)
@@ -174,20 +177,26 @@ def _parse_datetime(date: str, time: str) -> datetime:
     if time_match[4]:
         hour = hour % 12 + (12 if time_match[4] in "Pp" else 0)
     try:
-        return datetime(*_date_parts(date_match), hour, minute, second)
+        year, month, day = _date_parts(date_match)
+        return datetime(year, month, day, hour, minute, second)
     except ValueError as error:
         raise GamryParseError(f"cannot parse DATE {date!r} and TIME {time!r}") from error
 
 
 def _date_parts(match: re.Match[str]) -> tuple[int, int, int]:
-    """Year, month and day. Slash dates are month first, dash and dot dates day first, unless the month exceeds 12."""
+    """Year, month and day. Slash dates are month first, dash and dot dates day first, unless the month exceeds 12.
+
+    A two-digit year is accepted only in the M/D/YY form, with no swap, so it cannot be mistaken for a day.
+    """
     first, separator, middle, last = match.groups()
     if len(first) == 4:
         return int(first), int(middle), int(last)
-    year = int(last)
-    if len(last) == 2:
-        year += 2000 if year < 69 else 1900
     month, day = (int(first), int(middle)) if separator == "/" else (int(middle), int(first))
+    if len(last) == 2:
+        if separator != "/" or month > 12:
+            raise ValueError("ambiguous two-digit year")
+        year = int(last)
+        return year + (2000 if year < 69 else 1900), month, day
     if month > 12 >= day:
         month, day = day, month
-    return year, month, day
+    return int(last), month, day

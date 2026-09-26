@@ -166,11 +166,12 @@ def test_curve_dtypes_follow_units():
     assert parsed.units == {"Pt": "#", "T": "s", "Vf": "V vs. Ref.", "Im": "A", "IERange": "#", "Over": "bits"}
 
 
-def test_text_in_a_numeric_column_falls_back_to_inference():
+def test_text_in_a_numeric_column_becomes_null():
     parsed = parse(
         dta("EXPLAIN", "TAG\tCV", "CURVE\tTABLE", "\tPt\tVf\tNote", "\t#\tV\tV", "\t0\t0.5\tok", "\t1\t0.6\tbad")
     )
-    assert parsed.curves[0]["Note"].to_list() == ["ok", "bad"]
+    assert parsed.curves[0]["Note"].dtype == pl.Float64
+    assert parsed.curves[0]["Note"].to_list() == [None, None]
     assert parsed.curves[0]["Vf"].to_list() == [0.5, 0.6]
 
 
@@ -328,3 +329,33 @@ def test_header_values_keep_control_characters():
     header = parse(dta("EXPLAIN", "TAG\tCV", "TITLE\tLABEL\ta\x0cb\tTitle", "EOC\tQUANT\t0.5\tOpen Circuit (V)")).header
     assert header["TITLE"] == "a\x0cb"
     assert header["EOC"] == 0.5
+
+
+def test_bad_cell_keeps_declared_dtypes_in_other_columns():
+    parsed = parse(dta("EXPLAIN", "TAG\tCV", *CURVE, "\t0\t0\t0.5\t-1.#IND\t5\t123", "\t1\t1\t0.6\t2e-9\t5\t456"))
+    curve = parsed.curves[0]
+    assert curve["T"].dtype == pl.Float64
+    assert curve["Over"].to_list() == ["123", "456"]
+    assert curve["Im"].to_list() == [None, 2e-9]
+
+
+def test_column_with_no_parseable_cells_keeps_its_dtype():
+    parsed = parse(dta("EXPLAIN", "TAG\tCV", *CURVE, "\t0\t0\t0.5\t1.#QNAN\t5\t.."))
+    assert parsed.curves[0]["Im"].dtype == pl.Float64
+    assert parsed.curves[0]["Im"].to_list() == [None]
+
+
+def test_trailing_tabs_on_the_column_line_are_ignored():
+    parsed = parse(dta("EXPLAIN", "TAG\tCV", "CURVE\tTABLE", "\tPt\tT\tVf\t\t", "\t#\ts\tV\t\t", "\t0\t0.1\t0.5\t\t"))
+    assert parsed.curves[0].columns == ["Pt", "T", "Vf"]
+    assert parsed.curves[0].row(0) == (0, 0.1, 0.5)
+
+
+def test_empty_column_name_raises():
+    with pytest.raises(GamryParseError, match="empty column name"):
+        parse(dta("EXPLAIN", "TAG\tCV", "CURVE\tTABLE", "\tPt\t\tVf", "\t#\tV\tV", "\t0\t9.9\t0.5"))
+
+
+def test_cr_line_endings():
+    assert parse(b"EXPLAIN\rTAG\tCV\rSCANRATE\tQUANT\t1.5\tRate\r").header == {"TAG": "CV", "SCANRATE": 1.5}
+    assert parse(b"EXPLAIN\r\r\nTAG\tCV\r\r\n").header == {"TAG": "CV"}

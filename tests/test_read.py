@@ -1,5 +1,6 @@
 import copy
 import dataclasses
+import json
 import locale
 import pickle
 from datetime import datetime
@@ -103,7 +104,7 @@ def test_timestamps_need_a_t_column(data_dir):
 
 def test_timestamps_need_a_numeric_t_column(tmp_path):
     text = "EXPLAIN\nTAG\tMYSTERY\nDATE\tLABEL\t3/6/2019\tDate\nTIME\tLABEL\t12:00:00\tTime\n"
-    exp = gp.read(write(tmp_path, text + "CURVE\tTABLE\n\tPt\tT\n\t#\ts\n\t0\tabc\n"))
+    exp = gp.read(write(tmp_path, text + "CURVE\tTABLE\n\tPt\tT\n\t#\tbits\n\t0\tabc\n"))
     with pytest.raises(gp.GamryParseError, match="T column is not numeric"):
         exp.curve(timestamps=True)
 
@@ -141,6 +142,23 @@ def test_12_hour_time_ignores_the_process_locale(tmp_path, name):
     finally:
         locale.setlocale(locale.LC_ALL, previous)
     assert start == datetime(2019, 3, 6, 16, 35, 22)
+
+
+@pytest.mark.parametrize("date", ["3/6/9", "19-03-06", "21/12/31", "25/3/19"])
+def test_ambiguous_or_short_years_raise(tmp_path, date):
+    exp = gp.read(write(tmp_path, f"EXPLAIN\nTAG\tMYSTERY\nDATE\tLABEL\t{date}\tDate\nTIME\tLABEL\t12:00:00\tTime\n"))
+    with pytest.raises(gp.GamryParseError, match=f"cannot parse DATE '{date}'"):
+        _ = exp.start_time
+
+
+def test_header_copies_and_converts_like_a_dict(data_dir):
+    exp = gp.read(data_dir / "cv_data.dta")
+    clone = copy.deepcopy(exp.header)
+    assert clone == exp.header
+    with pytest.raises(TypeError):
+        clone["TAG"] = "EISPOT"
+    assert json.loads(json.dumps(dataclasses.asdict(exp)["header"]))["SCANRATE"] == 1.23456
+    assert json.loads(json.dumps(dict(exp.units)))["Vf"] == "V vs. Ref."
 
 
 def test_unparseable_date_raises_on_access(tmp_path):

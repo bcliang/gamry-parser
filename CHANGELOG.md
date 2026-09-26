@@ -15,8 +15,10 @@ Notable changes to gamry-parser, newest first. The project follows [Semantic Ver
 - `TWOPARAM` header values are frozen `TwoParam` records (`.enable`, `.start`, `.finish`) instead of dicts.
 - Errors are `GamryParseError`, `IndexError` or `FileNotFoundError` instead of `AssertionError`.
 - `read()` raises `GamryParseError` for a file without a `TAG` header instead of returning an empty result.
-- A cell that does not parse in a numeric column becomes null; a table with a repeated column name raises
-  `GamryParseError`.
+- Column dtypes follow the units line: a cell that does not parse in a numeric column becomes null. A table with a
+  repeated or empty column name raises `GamryParseError`.
+- `header` and `units` are read-only mappings; use `dataclasses.asdict(exp)` for plain dicts.
+- A user subclass replaces the built-in class in `read()` dispatch only if it declares its own `TAGS`.
 - Packaging uses uv and `uv_build`; CI runs ruff and publishes with PyPI trusted publishing.
 - Parsing is about 12 times faster on large files (1M-row CV file: 5.0 s with 0.4.6, 0.42 s with 1.0).
 
