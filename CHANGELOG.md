@@ -14,6 +14,8 @@ Notable changes to gamry-parser, newest first. The project follows [Semantic Ver
   when integral.
 - Errors are `GamryParseError`, `IndexError` or `FileNotFoundError` instead of `AssertionError`.
 - `read()` raises `GamryParseError` for a file without a `TAG` header instead of returning an empty result.
+- A cell that does not parse in a numeric column becomes null; a table with a repeated column name raises
+  `GamryParseError`.
 - Packaging uses uv and `uv_build`; CI runs ruff and publishes with PyPI trusted publishing.
 - Parsing is about 12 times faster on large files (1M-row CV file: 5.0 s with 0.4.6, 0.42 s with 1.0).
 
@@ -23,6 +25,7 @@ Notable changes to gamry-parser, newest first. The project follows [Semantic Ver
 - Files that are not valid UTF-8 are read as cp1252, so characters such as the degree sign are kept instead of dropped.
 
 ### Added
+- `sample_count` on every experiment type, and `start_time` parsing of day-first and two-digit-year dates.
 - Header fields after the curve tables (e.g. `EXPERIMENTABORTED`) and header fields of unknown type are kept.
 - An empty curve table becomes an empty curve instead of ending the read.
 

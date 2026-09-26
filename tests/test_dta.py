@@ -292,3 +292,34 @@ def test_curve_table_cut_off_before_its_units_line_is_skipped():
     parsed = parse(dta("EXPLAIN", "TAG\tCV", *CURVE, "\t0\t0\t0.5\t1e-9\t5\t..", *aborted))
     assert [curve.height for curve in parsed.curves] == [1]
     assert parsed.units["Vf"] == "V vs. Ref."
+
+
+def test_unparseable_numeric_cells_become_null():
+    parsed = parse(dta("EXPLAIN", "TAG\tCV", *CURVE, "\t0\t0\t0.5\t1.#QNAN\t5\t..", "\t1\t1\t0.6\t2e-9\t5\t.."))
+    assert parsed.curves[0]["Im"].dtype == pl.Float64
+    assert parsed.curves[0]["Im"].to_list() == [None, 2e-9]
+    assert parsed.curves[0]["Vf"].to_list() == [0.5, 0.6]
+
+
+def test_unparseable_numeric_cells_become_null_with_decimal_comma():
+    rows = ("\t0\t0\t0,5\t1.#QNAN\t5\t..", "\t1\t1\t0,6\t2E-009\t5\t..")
+    parsed = parse(dta("EXPLAIN", "TAG\tCV", "EOC\tQUANT\t0,5\tOpen Circuit (V)", *CURVE, *rows))
+    assert parsed.curves[0]["Im"].to_list() == [None, 2e-9]
+    assert parsed.curves[0]["Vf"].to_list() == [0.5, 0.6]
+
+
+def test_duplicate_column_names_raise():
+    with pytest.raises(GamryParseError, match="duplicate column 'Vf'"):
+        parse(dta("EXPLAIN", "TAG\tCV", "CURVE\tTABLE", "\tPt\tVf\tVf", "\t#\tV\tV", "\t0\t0.5\t0.7"))
+
+
+def test_ocvcurve_cut_off_before_its_column_line_is_ignored():
+    parsed = parse(dta("EXPLAIN", "TAG\tCV", "OCVCURVE\tTABLE\t0", "EOC\tQUANT\t0.5\tOpen Circuit (V)", *CURVE))
+    assert parsed.ocv_curve is None
+    assert parsed.header["EOC"] == 0.5
+
+
+def test_header_values_keep_control_characters():
+    header = parse(dta("EXPLAIN", "TAG\tCV", "TITLE\tLABEL\ta\x0cb\tTitle", "EOC\tQUANT\t0.5\tOpen Circuit (V)")).header
+    assert header["TITLE"] == "a\x0cb"
+    assert header["EOC"] == 0.5

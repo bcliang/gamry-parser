@@ -1,6 +1,6 @@
 """Parse Gamry EXPLAIN (DTA) files into polars DataFrames."""
 
-from importlib.metadata import version
+from importlib.metadata import PackageNotFoundError, version
 
 from ._dta import GamryParseError, HeaderValue, TwoParam
 from .experiment import Experiment, GamryParser, read
@@ -13,7 +13,10 @@ from .techniques import (
     SquareWaveVoltammetry,
 )
 
-__version__ = version("gamry-parser")
+try:
+    __version__ = version("gamry-parser")
+except PackageNotFoundError:
+    __version__ = "0.0.0"
 
 __all__ = [
     "VFP600",

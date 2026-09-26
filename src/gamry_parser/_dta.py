@@ -47,17 +47,18 @@ def parse(data: bytes, decimal_comma: bool | None = None) -> ParsedFile:
     curves: list[pl.DataFrame] = []
     ocv_curve = None
     for key, body in tables:
+        if key != "OCVCURVE" and not _CURVE_KEY.search(key):
+            continue
+        table, table_units = _read_table(body, decimal_comma)
+        if not table_units:
+            continue
         if key == "OCVCURVE":
-            ocv_curve, _ = _read_table(body, decimal_comma)
-        elif _CURVE_KEY.search(key):
-            curve, curve_units = _read_table(body, decimal_comma)
-            if not curve_units:
-                continue
-            if not curves:
-                units = curve_units
-            elif curve_units != units:
-                raise GamryParseError(f"{key}: units {curve_units} differ from the first curve's units {units}")
-            curves.append(curve)
+            ocv_curve = table
+        elif not curves or table_units == units:
+            units = table_units
+            curves.append(table)
+        else:
+            raise GamryParseError(f"{key}: units {table_units} differ from the first curve's units {units}")
     return ParsedFile(header=header, units=units, curves=tuple(curves), ocv_curve=ocv_curve)
 
 
@@ -74,11 +75,11 @@ def _split(text: str) -> tuple[list[str], list[tuple[str, str]]]:
     tables: list[tuple[str, str]] = []
     pos = 0
     while (match := _TABLE_LINE.search(text, pos)) is not None:
-        lines.extend(text[pos : match.start()].splitlines())
+        lines.extend(text[pos : match.start()].split("\n"))
         end = _TABLE_END.search(text, match.end() - 1)
         pos = end.start() + 1 if end else len(text)
         tables.append((match[1], text[match.end() : pos]))
-    lines.extend(text[pos:].splitlines())
+    lines.extend(text[pos:].split("\n"))
     return lines, tables
 
 
@@ -144,6 +145,8 @@ def _read_table(body: str, decimal_comma: bool) -> tuple[pl.DataFrame, dict[str,
     """Read a table body (column names, units, rows) into a frame and a column-to-unit map."""
     names_line, units_line, rows = [*body.split("\n", 2), "", ""][:3]
     names = names_line.split("\t")[1:]
+    if len(set(names)) != len(names):
+        raise GamryParseError(f"duplicate column {next(name for name in names if names.count(name) > 1)!r}")
     units = dict(zip(names, units_line.split("\t")[1:], strict=False))
     schema = {"": pl.String} | {name: _UNIT_DTYPES.get(units.get(name, ""), pl.Float64) for name in names}
     if not rows.strip():
@@ -161,4 +164,14 @@ def _read_table(body: str, decimal_comma: bool) -> tuple[pl.DataFrame, dict[str,
         frame = read(schema=schema)
     except pl.exceptions.ComputeError:
         frame = read(new_columns=list(schema), infer_schema_length=None)
+        frame = frame.with_columns(_as_declared(frame[name], dtype, decimal_comma) for name, dtype in schema.items())
     return frame.drop(""), units
+
+
+def _as_declared(column: pl.Series, dtype: type[pl.DataType], decimal_comma: bool) -> pl.Series:
+    """Cast a text column to its declared numeric dtype, nulling cells that do not parse; keep text if none parse."""
+    if dtype is pl.String or column.dtype != pl.String:
+        return column
+    text = column.str.replace(",", ".", literal=True) if decimal_comma else column
+    cast = text.cast(dtype, strict=False)
+    return column if cast.null_count() == column.len() else cast
