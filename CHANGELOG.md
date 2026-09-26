@@ -14,7 +14,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
   when integral.
 - Errors are `GamryParseError`, `IndexError` or `FileNotFoundError` instead of `AssertionError`.
 - Packaging uses uv and `uv_build`; CI runs ruff and publishes with PyPI trusted publishing.
-- Parsing is about 15 times faster on large files.
+- Parsing is about 12 times faster on large files (1M-row CV file: 5.0 s with 0.4.6, 0.42 s with 1.0).
 
 ### Fixed
 - Files written with a decimal comma parse correctly under any process locale.
