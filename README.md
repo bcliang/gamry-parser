@@ -36,6 +36,9 @@ exp.curve(0)  # polars DataFrame
 exp.curves  # every curve with every column, including Pt
 ```
 
+Header values are typed from the file's field types: `str`, `float`, `int`, `bool`, or a `TwoParam` record with
+`enable`, `start` and `finish` for `TWOPARAM` fields such as `CONDIT`.
+
 `read()` returns the class registered for the file's TAG:
 
 | TAG | Class | `curve()` columns | Properties |

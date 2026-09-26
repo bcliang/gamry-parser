@@ -12,6 +12,7 @@ Notable changes to gamry-parser, newest first. The project follows [Semantic Ver
 - `curve(i, timestamps=True)` replaces `to_timestamp`; `start_time` gives the experiment's start.
 - Measured columns are Float64, `#` columns (Pt, IERange) are Int64, and `IQUANT`/`SELECTOR` header values are `int`
   when integral.
+- `TWOPARAM` header values are frozen `TwoParam` records (`.enable`, `.start`, `.finish`) instead of dicts.
 - Errors are `GamryParseError`, `IndexError` or `FileNotFoundError` instead of `AssertionError`.
 - `read()` raises `GamryParseError` for a file without a `TAG` header instead of returning an empty result.
 - A cell that does not parse in a numeric column becomes null; a table with a repeated column name raises

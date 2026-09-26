@@ -1,7 +1,9 @@
+import dataclasses
+
 import polars as pl
 import pytest
 
-from gamry_parser._dta import GamryParseError, parse
+from gamry_parser._dta import GamryParseError, TwoParam, parse
 
 
 def dta(*lines: str) -> bytes:
@@ -40,11 +42,14 @@ def test_header_value_types():
         "FOO": "bar",
         "STRIP": False,
         "RUN": True,
-        "CONDIT": {"enable": True, "start": 300.0, "finish": 0.5},
+        "CONDIT": TwoParam(enable=True, start=300.0, finish=0.5),
         "OTHER": "raw value",
     }
     assert isinstance(header["CYCLES"], int)
     assert isinstance(header["PSTATMODEL"], int)
+    assert header["CONDIT"].start == 300.0
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        header["CONDIT"].start = 1.0
 
 
 def test_notes_are_the_following_lines_joined():
@@ -92,13 +97,13 @@ def test_cv_fixture_header(data_dir):
     assert header["CHECKIQUANT"] == 5
     assert header["CHECKSELECTOR"] == 0
     assert header["CHECKTOGGLE"] is False
-    assert header["CHECK2PARAM"] == {"enable": True, "start": 300, "finish": 0.5}
+    assert header["CHECK2PARAM"] == TwoParam(enable=True, start=300, finish=0.5)
     assert header["CHECKNOTES"] == "test-notes-data"
 
 
 def test_incomplete_header_fixture(data_dir):
     header = parse((data_dir / "cv_data_incompleteheader.dta").read_bytes()).header
-    assert header["DELAY"] == {"enable": False, "start": 300, "finish": 0.1}
+    assert header["DELAY"] == TwoParam(enable=False, start=300, finish=0.1)
 
 
 def test_fields_after_the_curves_are_header_fields(data_dir):
@@ -116,7 +121,7 @@ def test_decimal_comma_detected_from_header():
         )
     ).header
     assert header["EQDELAY"] == 5.0
-    assert header["CONDIT"] == {"enable": False, "start": 15.0, "finish": 0.0}
+    assert header["CONDIT"] == TwoParam(enable=False, start=15.0, finish=0.0)
 
 
 def test_decimal_comma_override():

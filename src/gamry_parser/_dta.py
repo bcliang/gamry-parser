@@ -3,7 +3,6 @@
 import re
 from dataclasses import dataclass
 from functools import partial
-from typing import TypedDict
 
 import polars as pl
 
@@ -12,7 +11,10 @@ class GamryParseError(ValueError):
     """Raised when a DTA file cannot be parsed."""
 
 
-class TwoParam(TypedDict):
+@dataclass(frozen=True, slots=True)
+class TwoParam:
+    """A TWOPARAM header value: an on/off flag with two numbers, e.g. conditioning time and potential."""
+
     enable: bool
     start: float
     finish: float
