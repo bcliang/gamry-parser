@@ -13,6 +13,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Measured columns are Float64, `#` columns (Pt, IERange) are Int64, and `IQUANT`/`SELECTOR` header values are `int`
   when integral.
 - Errors are `GamryParseError`, `IndexError` or `FileNotFoundError` instead of `AssertionError`.
+- `read()` raises `GamryParseError` for a file without a `TAG` header instead of returning an empty result.
 - Packaging uses uv and `uv_build`; CI runs ruff and publishes with PyPI trusted publishing.
 - Parsing is about 12 times faster on large files (1M-row CV file: 5.0 s with 0.4.6, 0.42 s with 1.0).
 

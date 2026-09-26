@@ -25,6 +25,14 @@ def test_subclass_read_rejects_other_tags(data_dir):
         gp.SquareWaveVoltammetry.read(data_dir / "cv_data.dta")
 
 
+def test_subclass_without_tags_names_the_missing_tags(data_dir):
+    class Unregistered(gp.Experiment):
+        pass
+
+    with pytest.raises(gp.GamryParseError, match=r"cv_data\.dta: Unregistered has no TAGS; found TAG 'CV'"):
+        Unregistered.read(data_dir / "cv_data.dta")
+
+
 @pytest.mark.parametrize("cls", [cls for _, cls in TECHNIQUES])
 def test_0x_constructors_raise(cls):
     with pytest.raises(TypeError, match=rf"{cls.__name__}\(filename=\.\.\.\)\.load\(\) was removed"):

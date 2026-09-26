@@ -37,6 +37,12 @@ def test_missing_file_raises(tmp_path):
         gp.read(tmp_path / "missing.dta")
 
 
+@pytest.mark.parametrize("text", ["", "MIT License\n\nCopyright (c) 2019\n", "a,b\n1,2\n"])
+def test_file_without_a_tag_raises(tmp_path, text):
+    with pytest.raises(gp.GamryParseError, match=r"experiment\.dta: no TAG header; not a Gamry DTA file"):
+        gp.read(write(tmp_path, text))
+
+
 def test_base_experiment_curve_returns_all_columns(tmp_path):
     exp = gp.read(write(tmp_path, "EXPLAIN\nTAG\tMYSTERY\nCURVE\tTABLE\n\tPt\tT\tVf\n\t#\ts\tV\n\t0\t0.5\t1.5\n"))
     assert exp.curve().columns == ["Pt", "T", "Vf"]

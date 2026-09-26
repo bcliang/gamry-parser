@@ -57,10 +57,14 @@ class Experiment:
         path = Path(path)
         parsed = parse(path.read_bytes(), decimal_comma)
         tag = parsed.header.get("TAG")
+        if not isinstance(tag, str):
+            raise GamryParseError(f"{path.name}: no TAG header; not a Gamry DTA file")
         if cls is Experiment:
-            target = _REGISTRY.get(tag, Experiment) if isinstance(tag, str) else Experiment
+            target = _REGISTRY.get(tag, Experiment)
         elif tag in cls.TAGS:
             target = cls
+        elif not cls.TAGS:
+            raise GamryParseError(f"{path.name}: {cls.__name__} has no TAGS; found TAG {tag!r}")
         else:
             raise GamryParseError(f"{path.name}: expected TAG {' or '.join(sorted(cls.TAGS))}, found {tag!r}")
         for column, unit in target.REQUIRED_UNITS.items():

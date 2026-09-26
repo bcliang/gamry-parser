@@ -78,7 +78,7 @@ df = exp.curve(0).to_pandas()  # needs gamry-parser[pandas]
 ### Errors
 
 `read()` raises `FileNotFoundError` for a missing file and `GamryParseError` (a `ValueError`) for a file it cannot
-parse. `curve(i)` raises `IndexError` when `i` is out of range.
+parse, including any file without a `TAG` header line. `curve(i)` raises `IndexError` when `i` is out of range.
 
 ## Migrating from 0.x
 
@@ -125,8 +125,8 @@ tests/             pytest suite; fixtures in tests/data/
 demo/              example notebooks
 ```
 
-Propose changes as pull requests against `master`. CI runs ruff and the tests on Python 3.12–3.14. Keep line coverage
-at 90% or more per file.
+Propose changes as pull requests against `master`. CI runs ruff and the tests on Python 3.12–3.14, and the test run
+fails if total branch coverage drops below 90%.
 
 ## Related projects
 
