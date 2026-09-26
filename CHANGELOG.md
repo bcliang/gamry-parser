@@ -2,16 +2,28 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
-
-### Fixed
-- 
+## [1.0.0] - Unreleased
 
 ### Changed
-- [#46](https://github.com/bcliang/gamry-parser/pull/46) Change: class property methods
+- Breaking: `gamry_parser.read(path)` replaces `GamryParser(...).load()`. It returns an immutable `Experiment` subclass
+  chosen by the file's TAG. 0.x constructors raise `TypeError`.
+- Breaking: curves are polars DataFrames and `Pt` is a column. Install `gamry-parser[pandas]` to use `to_pandas()`.
+- Breaking: requires Python 3.12 or newer.
+- `to_timestamp` is replaced by `curve(i, timestamps=True)`; `start_time` gives the experiment start.
+- Measured columns are Float64, `#` columns (Pt, IERange) are Int64, and `IQUANT`/`SELECTOR` header values are `int`
+  when integral.
+- Errors are `GamryParseError`, `IndexError` or `FileNotFoundError` instead of `AssertionError`.
+- Packaging uses uv and `uv_build`; CI runs ruff and publishes with PyPI trusted publishing.
+- Parsing is about 15 times faster on large files.
+
+### Fixed
+- Files written with a decimal comma parse correctly under any process locale.
+- VFP600 units line up with their columns.
+- Non-UTF-8 characters such as `°` are decoded as cp1252 instead of dropped.
 
 ### Added
-- 
+- Header fields after the curve tables (e.g. `EXPERIMENTABORTED`) and header fields of unknown type are kept.
+- An empty curve table is returned as an empty curve instead of ending the file.
 
 ## [0.4.6] - 2022-01-01
 

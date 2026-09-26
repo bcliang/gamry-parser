@@ -1,28 +1,15 @@
-import gamry_parser as parser
-import random
+"""Read a cyclic voltammetry file with gamry-parser."""
 
-file = "tests/cv_data.dta"
-gp = parser.GamryParser()
-gp.load(filename=file)
-print("GamryParser() usage:")
-print("experiment type: {}".format(gp.experiment_type))
-print("loaded curves: {}".format(gp.curve_count))
+from pathlib import Path
 
-curve_index = random.randint(1, gp.curve_count)
-print("showing curve #{}".format(curve_index))
-print(gp.curve(curve_index))
+import gamry_parser as gp
 
-cv = parser.CyclicVoltammetry(filename=file)
-cv.load()
-vrange = cv.v_range
-print("\nCyclic Voltammetry class")
-print("Programmed Scan Rate: {} mV/s".format(cv.scan_rate))
-print("Programmed V range: [{}, {}] V".format(vrange[0], vrange[1]))
-print(
-    "\tnote: range will not match with below; the raw file has been modified for faster test execution"
-)
+path = Path(__file__).parent / "tests" / "data" / "cv_data.dta"
+cv = gp.CyclicVoltammetry.read(path)
 
-curve = cv.curve(curve_index)
-print("showing curve #{}".format(curve_index))
-print("Acheived V range: [{}, {}]".format(min(curve["Vf"]), max(curve["Vf"])))
+print(f"{path.name}: {cv.experiment_type}, {cv.curve_count} curves, started {cv.start_time}")
+print(f"programmed scan rate: {cv.scan_rate} mV/s, limits: {cv.v_range} V")
+
+curve = cv.curve(2)
+print(f"curve 2 potential range: [{curve['Vf'].min()}, {curve['Vf'].max()}] V")
 print(curve)

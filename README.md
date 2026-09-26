@@ -3,175 +3,136 @@
 [![PyPI](https://img.shields.io/pypi/v/gamry-parser.svg)](https://pypi.org/project/gamry-parser/)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gamry-parser.svg)
 [![PyPI - License](https://img.shields.io/pypi/l/gamry-parser.svg)](./LICENSE)
+[![Tests](https://github.com/bcliang/gamry-parser/actions/workflows/test.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/test.yml)
+[![Lint](https://github.com/bcliang/gamry-parser/actions/workflows/lint.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/lint.yml)
 
-Python package for parsing the contents of Gamry EXPLAIN data (DTA) files. This package is meant to convert flat-file EXPLAIN data into pandas DataFrames for easy analysis and visualization.
+Parse Gamry EXPLAIN (DTA) files into [polars](https://pola.rs) DataFrames.
 
-## Getting Started
-
-### Dependencies
-
-* pandas
-
-### Installation
-
-#### Package from PyPi
+## Installation
 
 ```bash
-$ pip install gamry-parser
+pip install gamry-parser
+# or
+uv add gamry-parser
 ```
 
-#### Local Installation
+gamry-parser 1.x requires Python 3.12 or newer. To convert curves to pandas, install the `pandas` extra:
+`pip install "gamry-parser[pandas]"`.
 
-1. Check out the latest code:
-```bash
-$ git clone git@github.com:bcliang/gamry-parser.git
-```
-2. Use setuptools to install the package
-```bash
-$ python setup.py install
-```
-
-### Usage
-
-The provided Usage example loads a CV DTA file two ways, and demonstrates the utility of class properties within the CyclicVoltammetry subclass (`v_range`, `scan_rate`)
-
-```bash
-$ python usage.py
-```
-
-#### GamryParser Example
-
-The following snippet loads a DTA file and prints to screen: (1) experiment type, (2) # of curves, and (3) a random curve in the form of a pandas DataFrame.
+## Usage
 
 ```python
-import gamry_parser as parser
-import random
+import gamry_parser as gp
 
-file = '/enter/the/file/path.dta'
-gp = parser.GamryParser()
-gp.load(filename=file)
-
-print("experiment type: {}".format(gp.experiment_type))
-print("loaded curves: {}".format(gp.curve_count))
-
-curve_index = random.randint(1,gp.curve_count)
-print("showing curve #{}".format(curve_index))
-print(gp.curve(curve_index))
+exp = gp.read("path/to/experiment.dta")
+exp.experiment_type   # header TAG, e.g. "CV"
+exp.header["DATE"]    # every header field, typed
+exp.start_time        # datetime from DATE and TIME
+exp.curve_count
+exp.curve(0)          # polars DataFrame
+exp.curves            # every curve with every column, including Pt
 ```
 
-#### ChronoAmperometry Example
+`read()` returns the class registered for the file's TAG:
 
-The `ChronoAmperometry` class is a subclass of `GamryParser`. Executing the method `get_curve_data()` will return a DataFrame with three columns: (1) `T`, (2) `Vf`, and (3) `Im`
+| TAG | Class | `curve()` columns | Properties |
+|---|---|---|---|
+| `CV` | `CyclicVoltammetry` | Vf, Im | `v_range`, `scan_rate` |
+| `CHRONOA` | `ChronoAmperometry` | T, Vf, Im | `sample_time`, `sample_count` |
+| `EISPOT` | `Impedance` | Freq, Zreal, Zimag, Zmod, Zphz | |
+| `CORPOT` | `OpenCircuitPotential` | T, Vf | |
+| `SQUARE_WAVE` | `SquareWaveVoltammetry` | T, Vfwd, Vrev, Vstep, Ifwd, Irev, Idif | `step_size`, `pulse_size`, `pulse_width`, `frequency`, `v_range`, `cycles` |
+| `VFP600` | `VFP600` | T, Voltage, Current | `sample_time`, `sample_count` |
+| anything else | `Experiment` | all columns | |
 
-In the example, the file is expected to be a simple chronoamperometry experiment (single step, no preconditioning); there will only be a single curve of data contained within the file. In addition, note the use of the `to_timestamp` property, which allows the user to request `get_curve_data` to return a DataFrame with a `T` column containing DateTime objects (as opposed to the default: float seconds since start).
+Every class also has `ocv` (the EOC header field) and `ocv_curve` (the OCVCURVE table, if the file has one).
+Properties return `None` when the header field is missing.
+
+To insist on one experiment type, call `read` on its class. It raises `GamryParseError` for any other TAG:
 
 ```python
-import gamry_parser as parser
-import random
-
-file = '/enter/the/file/path.dta'
-ca = parser.ChronoAmperometry(to_timestamp=True)
-ca.load(filename=file)
-print(ca.curve())
+cv = gp.CyclicVoltammetry.read("cv.dta")
+cv.scan_rate, cv.v_range
 ```
 
-#### Demos
+### Timestamps
 
-A simple demonstration is provided in `usage.py`. 
+`T` is seconds since the start of the experiment. `timestamps=True` converts it to datetimes using the DATE and TIME
+header fields:
 
-`python usage.py` 
+```python
+gp.read("chronoa.dta").curve(timestamps=True)
+```
 
-ipython notebook demonstration scripts are included in the `demo` folder.
+### Decimal commas
 
-- `notebook_gamry_parser.ipynb`: Simple example loading data from ChronoA experiment output. Instead of `gamry_parser.GamryParser()`, the parser could be instantiated with `gamry_parser.ChronoAmperometry()`
-- `notebook_cyclicvoltammetry.ipynb`: Example loading data from a CV (cyclic voltammetry) experiment output. Uses the `gamry_parser.CyclicVoltammetry()` subclass.
-- `notebook_cyclicvoltammetry_peakdetect.ipynb`: Another example that demonstrates loading CV data and detecting peaks in the data using `scipy.signal.find_peaks()`
-- `notebook_potentiostatic_eis.ipynb`: Example loading data from an EIS (electrochemical impedance spectroscopy) experiment. Uses the `gamry_parser.Impedance()` subclass.
+Files written on systems that use a decimal comma (`5,00000E-001`) are detected automatically, whatever the locale of
+the machine reading them. To override the detection, pass `gp.read(path, decimal_comma=True)`.
 
-#### Additional Examples
+### pandas
 
-Similar procedure should be followed for using the `gamry_parser.CyclicVoltammetry()`, `gamry_parser.Impedance()`, `gamry_parser.OpenCircuitPotential()`, `gamry_parser.SquareWaveVoltammetry()` and `gamry_parser.VFP600()` parser subclasses. Take a look at `usage.py` and in `tests/` for some additional usage examples.
+```python
+df = exp.curve(0).to_pandas()  # needs gamry-parser[pandas]
+```
+
+### Errors
+
+`read()` raises `FileNotFoundError` for a missing file and `GamryParseError` (a `ValueError`) for a file it cannot
+parse. `curve(i)` raises `IndexError` when `i` is out of range.
+
+## Migrating from 0.x
+
+| 0.x | 1.x |
+|---|---|
+| `p = GamryParser(filename=f); p.load()` | `exp = gp.read(f)` |
+| `CyclicVoltammetry(filename=f).load()` | `gp.CyclicVoltammetry.read(f)` |
+| `to_timestamp=True` | `exp.curve(i, timestamps=True)` |
+| `p.curve(i)` returns pandas with `Pt` as the index | `exp.curve(i)` returns polars; `Pt` is a column of `exp.curves[i]` |
+| `p.curves` (list) | `exp.curves` (tuple) |
+| `p.curve_indices`, `p.curve_numbers` | `range(exp.curve_count)` |
+| `p.fname`, `p.loaded` | `exp.path` |
+| `AssertionError` | `GamryParseError`, `IndexError`, `FileNotFoundError` |
+
+Calling a 0.x constructor raises `TypeError` with a pointer to `read()`.
+
+## Examples
+
+`python usage.py` reads a cyclic voltammetry file. The notebooks in `demo/` cover chronoamperometry, cyclic
+voltammetry, CV peak detection, and EIS with an equivalent-circuit fit. They run in Jupyter or Google Colab:
+
+```bash
+uv run --group demo --with jupyterlab jupyter lab demo/
+```
 
 ## Development
 
-### Project Tree
-```
-  .
-  ├── gamry_parser              # source files
-  │   ├── ...          
-  │   ├── chronoa.py            # ChronoAmperometry() experiment parser
-  │   ├── cv.py                 # CyclicVoltammetry() experiment parser
-  │   ├── eispot.py             # Impedance() experiment parser
-  |   ├── gamryparser.py        # GamryParser: generic DTA file parser
-  │   ├── ocp.py                # OpenCircuitPotential() experiment parser
-  │   ├── squarewave.py         # SquareWaveVoltammetry() experiment parser
-  |   └── vfp600.py             # VFP600() parses experiment data generated by the Gamry VFP600 LabView Frontend. 
-  ├── tests                     # unit tests and test data
-  |   └── ...
-  ├── setup.py                  # setuptools configuration
-  └── ...                
-```
-
-### Roadmap
-
-Documentation! Loading of data is straightforward, and hopefully the examples provided in this README provide enough context for any of the subclasses to be used/extended.
-
-In the future, it would be nice to add support for things like equivalent circuit modeling, though at the moment there are other projects focused specifically on building out models and fitting EIS data (e.g. [kbknudsen/PyEIS](https://github.com/kbknudsen/PyEIS), [ECSHackWeek/impedance.py](https://github.com/ECSHackWeek/impedance.py)).
-
-#### Changelog
-
-See [`CHANGELOG`](CHANGELOG.md)
-
-### Tests
-
-[![Unit Tests](https://github.com/bcliang/gamry-parser/actions/workflows/unittest.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/unittest.yml)
-
-Tests extending `unittest.TestCase` may be found in `/tests/`.
-
-Unit tests are triggered as part of every pull request, but users can run tests locally as well:
-
 ```bash
-$ tox
+git clone git@github.com:bcliang/gamry-parser.git
+cd gamry-parser
+uv sync                  # create .venv with the dev dependencies
+uv run pytest --cov      # tests and coverage
+uvx ruff check           # lint
+uvx ruff format          # format
+uv build                 # sdist and wheel in dist/
 ```
 
-Alternatively, run `pytest` from your virtualenv (use the `-k` flag to filter tests)
-
-```bash
-$ pytest
-$ pytest -v -k "test_getters"
+```
+src/gamry_parser/
+  _dta.py          file bytes -> header, units, curves
+  experiment.py    Experiment and read()
+  techniques.py    technique subclasses
+tests/             pytest suite; fixtures in tests/data/
+demo/              example notebooks
 ```
 
-### Code Guidelines
+Propose changes as pull requests against `master`. CI runs ruff and the tests on Python 3.12–3.14. Keep line coverage
+at 90% or more per file.
 
-[![Lint](https://github.com/bcliang/gamry-parser/actions/workflows/lint.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/lint.yml)
+## Related projects
 
-* [GitHub flow](https://guides.github.com/introduction/flow/) for proposing changes (i.e. create a feature branch and submit a PR against the master branch).
-* Coding style: Pycodestyle formatting (PEP8). Linting via `black` is run on each push to github.
-* Tests: maintain > 90% line coverage, per file
+For equivalent-circuit modelling of EIS data, see [impedance.py](https://github.com/ECSHackWeek/impedance.py) and
+[PyEIS](https://github.com/kbknudsen/PyEIS).
 
-### Versioning
+## Changelog
 
-[SemVer](http://semver.org/) for versioning.
-1. Matching major version numbers are guaranteed to work together.
-2. Any change to the public API (breaking change) will increase a major version.
-
-### Publishing
-
-[![Publish](https://github.com/bcliang/gamry-parser/actions/workflows/release.yml/badge.svg)](https://github.com/bcliang/gamry-parser/actions/workflows/release.yml)
-
-The package relies on Github Actions to automatically build and upload artifacts to pypi upon published release. 
-
-#### Manual publishing (deprecated)
-
-Use setuptools to build, twine to publish to pypi.
-
-```bash
-$ rm -rf dist
-$ python setup.py build
-$ python setup.py sdist bdist_wheel
-$ twine upload dist/*
-```
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details
+See [CHANGELOG.md](CHANGELOG.md).
