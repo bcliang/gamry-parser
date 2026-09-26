@@ -126,8 +126,8 @@ def test_decimal_comma_override():
 
 
 def test_cp1252_file_decodes():
-    data = "EXPLAIN\nTAG\tEISPOT\nNOTE\tLABEL\t25 \N{DEGREE SIGN}C\tNote\n".encode("cp1252")
-    assert parse(data).header["NOTE"] == "25 \N{DEGREE SIGN}C"
+    data = "EXPLAIN\nTAG\tEISPOT\nNOTE\tLABEL\t25 °C\tNote\n".encode("cp1252")
+    assert parse(data).header["NOTE"] == "25 °C"
 
 
 def test_crlf_line_endings():
@@ -229,7 +229,7 @@ def test_cv_fixture_curves(data_dir):
 def test_aborted_experiment_fixtures(data_dir):
     eis = parse((data_dir / "eispot_data_curveaborted.dta").read_bytes())
     assert [curve.shape for curve in eis.curves] == [(5, 11)]
-    assert eis.units["Zphz"] == "\N{DEGREE SIGN}"
+    assert eis.units["Zphz"] == "°"
     swv = parse((data_dir / "squarewave_data.dta").read_bytes())
     assert [curve.shape for curve in swv.curves] == [(10, 13)]
 
