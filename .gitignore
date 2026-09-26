@@ -99,3 +99,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# notebook output
+demo/*.csv

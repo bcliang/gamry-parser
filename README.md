@@ -25,12 +25,12 @@ gamry-parser 1.x requires Python 3.12 or newer. To convert curves to pandas, ins
 import gamry_parser as gp
 
 exp = gp.read("path/to/experiment.dta")
-exp.experiment_type   # header TAG, e.g. "CV"
-exp.header["DATE"]    # every header field, typed
-exp.start_time        # datetime from DATE and TIME
+exp.experiment_type  # header TAG, e.g. "CV"
+exp.header["DATE"]  # every header field, typed
+exp.start_time  # datetime from DATE and TIME
 exp.curve_count
-exp.curve(0)          # polars DataFrame
-exp.curves            # every curve with every column, including Pt
+exp.curve(0)  # polars DataFrame
+exp.curves  # every curve with every column, including Pt
 ```
 
 `read()` returns the class registered for the file's TAG:
