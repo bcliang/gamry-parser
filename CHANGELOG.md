@@ -2,6 +2,20 @@
 
 Notable changes to gamry-parser, newest first. The project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-10-09
+
+### Added
+- `CyclicChargeDischarge` reads the summary file of a PWR800 cyclic charge-discharge run, whose data sit in a
+  `CAPACITYCURVE` table. Based on [#52](https://github.com/bcliang/gamry-parser/pull/52) by @bpbrown.
+- `ChargeDischarge` reads the raw charge and discharge step files from the same run.
+- `CyclicChargeDischarge.efficiency()` returns the coulombic and energy efficiency of each cycle as fractions.
+
+### Fixed
+- `TOGGLE` header fields written as `TRUE` or `FALSE` load as booleans; `TRUE` used to load as `False`.
+- `VARIABLEANDUNITS` and `MULTIPARAM` header fields load as `VariableAndUnits` and `MultiParam` dataclasses. They
+  used to load as a string holding only their first value.
+- `curve(timestamps=True)` works on `CyclicChargeDischarge` summaries, converting their `Time` column.
+
 ## [1.0.0] - 2026-09-26 [#51](https://github.com/bcliang/gamry-parser/pull/51)
 
 A rewrite. The 0.x API is gone; see the README's migration table.

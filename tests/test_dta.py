@@ -4,7 +4,7 @@ import json
 import polars as pl
 import pytest
 
-from gamry_parser._dta import GamryParseError, TwoParam, parse
+from gamry_parser._dta import GamryParseError, MultiParam, TwoParam, VariableAndUnits, parse
 
 
 def dta(*lines: str) -> bytes:
@@ -27,8 +27,13 @@ def test_header_value_types():
             "FOO\tTABLES\tbar\tLabel",
             "STRIP\tTOGGLE\tF\tUsed for Stripping",
             "RUN\tTOGGLE\tT\tRun",
+            "SEQUENCER\tTOGGLE\tTRUE\tRun as Sequence",
+            "STEP\tTOGGLE\tFALSE\tStep",
             "CONDIT\tTWOPARAM\tT\t3.00000E+002\t5.00000E-001\tConditionin&g\tTime(s)\tE(V)",
             "OTHER\tOUTPUT\traw value\tSomething",
+            "MAXTIME\tVARIABLEANDUNITS\t7.20000E+003\ts\t2.00000E+000\thour(s)\tMax Charge Time",
+            "STOPAT1\tMULTIPARAM\t4\t1.30000E+000\tStop At 1\tVoltage > Limit\tV",
+            "SHORT\tMULTIPARAM\t4\t1.30000E+000",
         )
     ).header
     assert header == {
@@ -43,8 +48,13 @@ def test_header_value_types():
         "FOO": "bar",
         "STRIP": False,
         "RUN": True,
+        "SEQUENCER": True,
+        "STEP": False,
         "CONDIT": TwoParam(enable=True, start=300.0, finish=0.5),
         "OTHER": "raw value",
+        "MAXTIME": VariableAndUnits(value=7200.0, unit="s"),
+        "STOPAT1": MultiParam(selection=4, value=1.3, option="Voltage > Limit", unit="V"),
+        "SHORT": "4",
     }
     assert isinstance(header["CYCLES"], int)
     assert isinstance(header["PSTATMODEL"], int)
@@ -55,11 +65,18 @@ def test_header_value_types():
         TwoParam(enable=True, start=1.0, finish=2.0, extra=3.0)
 
 
-def test_two_param_round_trips_through_json():
-    value = TwoParam(enable=True, start=300.0, finish=0.5)
-    encoded = json.dumps({"CONDIT": value}, default=dataclasses.asdict)
-    assert json.loads(encoded) == {"CONDIT": {"enable": True, "start": 300.0, "finish": 0.5}}
-    assert TwoParam(**json.loads(encoded)["CONDIT"]) == value
+@pytest.mark.parametrize(
+    "value",
+    [
+        TwoParam(enable=True, start=300.0, finish=0.5),
+        VariableAndUnits(value=7200.0, unit="s"),
+        MultiParam(selection=4, value=1.3, option="Voltage > Limit", unit="V"),
+    ],
+)
+def test_multi_value_fields_round_trip_through_json(value):
+    encoded = json.dumps({"FIELD": value}, default=dataclasses.asdict)
+    assert json.loads(encoded) == {"FIELD": dataclasses.asdict(value)}
+    assert type(value)(**json.loads(encoded)["FIELD"]) == value
 
 
 def test_notes_are_the_following_lines_joined():
@@ -132,6 +149,17 @@ def test_decimal_comma_detected_from_header():
     ).header
     assert header["EQDELAY"] == 5.0
     assert header["CONDIT"] == TwoParam(enable=False, start=15.0, finish=0.0)
+
+
+@pytest.mark.parametrize(
+    ("line", "expected"),
+    [
+        ("MAXTIME\tVARIABLEANDUNITS\t7,2E+003\ts\t2,0E+000\thour(s)\tMax Time", VariableAndUnits(7200.0, "s")),
+        ("STOPAT1\tMULTIPARAM\t4\t1,3E+000\tStop At 1\tVoltage > Limit\tV", MultiParam(4, 1.3, "Voltage > Limit", "V")),
+    ],
+)
+def test_decimal_comma_detected_from_multi_value_fields(line, expected):
+    assert parse(dta("EXPLAIN", "TAG\tPWR800_CHARGE", line)).header[line.split("\t")[0]] == expected
 
 
 def test_decimal_comma_override():
@@ -308,6 +336,31 @@ def test_curve_table_cut_off_before_its_units_line_is_skipped():
     parsed = parse(dta("EXPLAIN", "TAG\tCV", *CURVE, "\t0\t0\t0.5\t1e-9\t5\t..", *aborted))
     assert [curve.height for curve in parsed.curves] == [1]
     assert parsed.units["Vf"] == "V vs. Ref."
+
+
+CAPACITY = ("CAPACITYCURVE\tTABLE", "\tPt\tCycle\tCharge\tDischarge", "\t#\t#\tC\tC")
+
+
+def test_capacity_curve_is_read_as_a_curve():
+    parsed = parse(dta("EXPLAIN", "TAG\tMYSTERY", *CAPACITY, "\t0\t1\t1.5\t1.4", "\t1\t2\t1.4\t1.3"))
+    assert parsed.units == {"Pt": "#", "Cycle": "#", "Charge": "C", "Discharge": "C"}
+    assert parsed.curves[0]["Cycle"].to_list() == [1, 2]
+    assert parsed.curves[0]["Discharge"].to_list() == [1.4, 1.3]
+
+
+def test_decimal_comma_detected_from_capacity_curve_rows():
+    parsed = parse(dta("EXPLAIN", "TAG\tMYSTERY", *CAPACITY, "\t0\t1\t1,5\t1,4"))
+    assert parsed.curves[0]["Charge"].to_list() == [1.5]
+
+
+def test_header_lines_after_curve_rows_end_the_curve():
+    trailer = ("STOPREASON\tLABEL\tVoltage limit\tStop Reason", "STARTTIMEOFFSET\tQUANT\t1.5E+001\tStart Offset (s)")
+    second = ("CURVE2\tTABLE", *CURVE[1:])
+    rows = ("\t0\t0\t0.5\t1e-9\t5\t..", *trailer, *second, "\t0\t15\t0.6\t2e-9\t5\t..", *trailer)
+    parsed = parse(dta("EXPLAIN", "TAG\tMYSTERY", *CURVE, *rows))
+    assert [curve["Vf"].to_list() for curve in parsed.curves] == [[0.5], [0.6]]
+    assert parsed.header["STOPREASON"] == "Voltage limit"
+    assert parsed.header["STARTTIMEOFFSET"] == 15.0
 
 
 def test_unparseable_numeric_cells_become_null():

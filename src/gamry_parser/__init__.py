@@ -2,11 +2,13 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
-from ._dta import GamryParseError, HeaderValue, TwoParam
+from ._dta import GamryParseError, HeaderValue, MultiParam, TwoParam, VariableAndUnits
 from .experiment import Experiment, GamryParser, read
 from .techniques import (
     VFP600,
+    ChargeDischarge,
     ChronoAmperometry,
+    CyclicChargeDischarge,
     CyclicVoltammetry,
     Impedance,
     OpenCircuitPotential,
@@ -20,16 +22,20 @@ except PackageNotFoundError:
 
 __all__ = [
     "VFP600",
+    "ChargeDischarge",
     "ChronoAmperometry",
+    "CyclicChargeDischarge",
     "CyclicVoltammetry",
     "Experiment",
     "GamryParseError",
     "GamryParser",
     "HeaderValue",
     "Impedance",
+    "MultiParam",
     "OpenCircuitPotential",
     "SquareWaveVoltammetry",
     "TwoParam",
+    "VariableAndUnits",
     "__version__",
     "read",
 ]

@@ -32,7 +32,28 @@ class TwoParam:
     finish: float
 
 
-type HeaderValue = str | float | int | bool | TwoParam
+@dataclass(frozen=True, slots=True)
+class VariableAndUnits:
+    """A VARIABLEANDUNITS header value: a number in its base unit, e.g. a maximum step time of 7200 s."""
+
+    value: float
+    unit: str
+
+
+@dataclass(frozen=True, slots=True)
+class MultiParam:
+    """A MULTIPARAM header value: the selected option's index and name, with its number and unit.
+
+    For example, a stop condition of 1.3 V when the voltage exceeds a limit.
+    """
+
+    selection: int
+    value: float
+    option: str
+    unit: str
+
+
+type HeaderValue = str | float | int | bool | TwoParam | VariableAndUnits | MultiParam
 
 
 @dataclass(frozen=True, eq=False)
@@ -45,10 +66,12 @@ class ParsedFile:
 
 _TABLE_LINE = re.compile(r"^([^\t\n]+)\tTABLE(?:\t[^\n]*)?(?:\n|\Z)", re.MULTILINE)
 _TABLE_END = re.compile(r"\n(?!\t)")
-_CURVE_KEY = re.compile(r"(^|Z|VFP|EFM)CURVE")
+_CURVE_KEY = re.compile(r"(^|Z|VFP|EFM|CAPACITY)CURVE")
 _COMMA_NUMBER = re.compile(r"[-+]?\d+,\d+(?:[eE][-+]?\d+)?")
 _DOT_NUMBER = re.compile(r"[-+]?\d+\.\d+(?:[eE][-+]?\d+)?")
 _UNIT_DTYPES: dict[str, type[pl.DataType]] = {"#": pl.Int64, "bits": pl.String}
+_TRUE = frozenset({"T", "TRUE"})
+_NUMBER_FIELDS = {"QUANT": (2,), "POTEN": (2,), "TWOPARAM": (3, 4), "VARIABLEANDUNITS": (2, 4), "MULTIPARAM": (3,)}
 
 
 def parse(data: bytes, decimal_comma: bool | None = None) -> ParsedFile:
@@ -101,10 +124,8 @@ def _detect_decimal_comma(lines: list[str], tables: list[tuple[str, str]]) -> bo
     values: list[str] = []
     for line in lines:
         fields = line.split("\t")
-        if len(fields) > 2 and fields[1] in ("QUANT", "POTEN"):
-            values.append(fields[2])
-        elif len(fields) > 4 and fields[1] == "TWOPARAM":
-            values.extend(fields[3:5])
+        if len(fields) > 1:
+            values.extend(fields[index] for index in _NUMBER_FIELDS.get(fields[1], ()) if index < len(fields))
     if any(_COMMA_NUMBER.fullmatch(value) for value in values):
         return True
     if any(_DOT_NUMBER.fullmatch(value) for value in values):
@@ -143,9 +164,15 @@ def _parse_header(lines: list[str], decimal_comma: bool) -> dict[str, HeaderValu
                     parsed = number(value)
                     header[key] = int(parsed) if parsed.is_integer() else parsed
                 case "TOGGLE":
-                    header[key] = value == "T"
+                    header[key] = value in _TRUE
                 case "TWOPARAM":
-                    header[key] = TwoParam(enable=value == "T", start=number(fields[3]), finish=number(fields[4]))
+                    header[key] = TwoParam(enable=value in _TRUE, start=number(fields[3]), finish=number(fields[4]))
+                case "VARIABLEANDUNITS":
+                    header[key] = VariableAndUnits(value=number(value), unit=fields[3])
+                case "MULTIPARAM":
+                    header[key] = MultiParam(
+                        selection=int(value), value=number(fields[3]), option=fields[5], unit=fields[6]
+                    )
                 case "NOTES":
                     header[key] = "\n".join(next(rows, "").strip() for _ in range(int(value)))
                 case _:
