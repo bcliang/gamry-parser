@@ -24,6 +24,7 @@ class Experiment:
     TAGS: ClassVar[frozenset[str]] = frozenset()
     COLUMNS: ClassVar[tuple[str, ...] | None] = None
     REQUIRED_UNITS: ClassVar[Mapping[str, str]] = {}
+    TIME_COLUMN: ClassVar[str] = "T"
 
     path: Path
     header: Mapping[str, HeaderValue]
@@ -107,7 +108,7 @@ class Experiment:
         return _parse_datetime(date, time)
 
     def curve(self, index: int = 0, *, timestamps: bool = False) -> pl.DataFrame:
-        """Return one curve. With `timestamps`, T holds datetimes instead of seconds since the start."""
+        """Return one curve. With `timestamps`, the time column holds datetimes instead of seconds since the start."""
         if not -self.curve_count <= index < self.curve_count:
             raise IndexError(f"curve {index} out of range; {self.path.name} has {self.curve_count} curves")
         frame = self._curve_frame(index)
@@ -127,12 +128,13 @@ class Experiment:
         start = self.start_time
         if start is None:
             raise GamryParseError(f"{self.path.name} has no DATE/TIME header; cannot compute timestamps")
-        if "T" not in frame.columns:
-            raise GamryParseError(f"{self.path.name}: curve has no T column; cannot compute timestamps")
-        if not frame.schema["T"].is_numeric():
-            raise GamryParseError(f"{self.path.name}: T column is not numeric; cannot compute timestamps")
-        elapsed = pl.duration(microseconds=(pl.col("T") * 1_000_000).round().cast(pl.Int64))
-        return frame.with_columns(T=pl.lit(start) + elapsed)
+        column = self.TIME_COLUMN
+        if column not in frame.columns:
+            raise GamryParseError(f"{self.path.name}: curve has no {column} column; cannot compute timestamps")
+        if not frame.schema[column].is_numeric():
+            raise GamryParseError(f"{self.path.name}: {column} column is not numeric; cannot compute timestamps")
+        elapsed = pl.duration(microseconds=(pl.col(column) * 1_000_000).round().cast(pl.Int64))
+        return frame.with_columns((pl.lit(start) + elapsed).alias(column))
 
     def _float(self, key: str) -> float | None:
         value = self.header.get(key)

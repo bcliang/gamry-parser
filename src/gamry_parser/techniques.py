@@ -120,12 +120,14 @@ class VFP600(Experiment):
 class CyclicChargeDischarge(Experiment):
     """Cyclic charge-discharge summary from the PWR800 software (TAG PWR800_CYCLICCHARGEDISCHARGE).
 
-    The curve has one row per charge or discharge step. Type is 0 for a charge step and 1 for a discharge step.
-    Charge is positive for both step types; Energy is negative for discharge steps.
+    The curve has one row per charge or discharge step. Time is whole seconds since the start of the run, taken at
+    the end of the step. Type is 0 for a charge step and 1 for a discharge step. Charge is positive for both step
+    types; Energy is negative for discharge steps.
     """
 
     TAGS = frozenset({"PWR800_CYCLICCHARGEDISCHARGE"})
     COLUMNS = ("Time", "Type", "Cycle", "Charge", "Duration", "Vstart", "Vend", "Energy")
+    TIME_COLUMN = "Time"
 
     @property
     def cycles(self) -> int | None:

@@ -75,7 +75,7 @@ cv.scan_rate, cv.v_range
 ### Timestamps
 
 `T` is seconds since the start of the experiment. `timestamps=True` converts it to datetimes using the DATE and TIME
-header fields:
+header fields. In a `CyclicChargeDischarge` summary the converted column is `Time`, the end of each step:
 
 ```python
 gp.read("chronoa.dta").curve(timestamps=True)

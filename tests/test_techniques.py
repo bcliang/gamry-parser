@@ -153,6 +153,9 @@ def test_cyclic_charge_discharge(data_dir):
     assert curve.row(0) == (3493, 0, 1, 4362.108, 3492.657, 0.7937095, 1.206959, 3962.024)
     assert curve.row(-1) == (284885, 1, 50, 3114.31, 2488.698, 0.7620814, 0.3999423, -2055.479)
     assert curve["Type"].value_counts(sort=True)["count"].to_list() == [50, 50]
+    stamped = ccd.curve(timestamps=True)
+    assert stamped["Time"][0] == datetime(2015, 4, 26, 18, 51, 34)
+    assert stamped.columns == curve.columns
     assert ccd.units["Charge"] == "C"
     assert ccd.units["Energy"] == "J"
 

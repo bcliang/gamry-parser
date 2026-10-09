@@ -13,6 +13,7 @@ Notable changes to gamry-parser, newest first. The project follows [Semantic Ver
 - `TOGGLE` header fields written as `TRUE` or `FALSE` load as booleans; `TRUE` used to load as `False`.
 - `VARIABLEANDUNITS` and `MULTIPARAM` header fields load as `VariableAndUnits` and `MultiParam` dataclasses. They
   used to load as a string holding only their first value.
+- `curve(timestamps=True)` works on `CyclicChargeDischarge` summaries, converting their `Time` column.
 
 ## [1.0.0] - 2026-09-26 [#51](https://github.com/bcliang/gamry-parser/pull/51)
 
