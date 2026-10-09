@@ -36,12 +36,7 @@ exp.curve(0)  # polars DataFrame
 exp.curves  # every curve with every column, including Pt
 ```
 
-Header values are typed from the file's field types: `str`, `float`, `int`, `bool`, or a frozen dataclass for field
-types that hold several values. `TWOPARAM` fields such as `CONDIT` load as `TwoParam` (`enable`, `start`, `finish`),
-`VARIABLEANDUNITS` fields as `VariableAndUnits` (`value`, `unit`) and `MULTIPARAM` fields as `MultiParam`
-(`selection`, `value`, `option`, `unit`). `header` and `units` are read-only mappings;
-`json.dumps(exp.header, default=dataclasses.asdict)` serializes a header, and `TwoParam(**value)` rebuilds a field
-from the loaded JSON.
+Header values are typed from the file's field types: `str`, `float`, `int`, `bool`, or a frozen dataclass for field types that hold several values. `TWOPARAM` fields such as `CONDIT` load as `TwoParam` (`enable`, `start`, `finish`), `VARIABLEANDUNITS` fields as `VariableAndUnits` (`value`, `unit`) and `MULTIPARAM` fields as `MultiParam` (`selection`, `value`, `option`, `unit`). `header` and `units` are read-only mappings; `json.dumps(exp.header, default=dataclasses.asdict)` serializes a header, and `TwoParam(**value)` rebuilds a field from the loaded JSON.
 
 `read()` returns the class registered for the file's TAG:
 
@@ -61,10 +56,7 @@ Every class also has `ocv` (the EOC header field), `ocv_curve` (the OCVCURVE tab
 `sample_count` (rows across all curves).
 Properties return `None` when the header field is missing.
 
-A cyclic charge-discharge (CCD) run in Gamry's PWR800 software writes a summary file with one row per step. In it,
-Type is 0 for a charge step and 1 for a discharge step. `efficiency()` pairs the two steps of each cycle by Cycle
-number and returns coulombic and energy efficiency as fractions, null for a cycle that lacks either step. The run can
-also save each step's raw curve as its own file, which loads as `ChargeDischarge`.
+A cyclic charge-discharge (CCD) run in Gamry's PWR800 software writes a summary file with one row per step. In it, Type is `0` for a charge step and `1` for a discharge step. `efficiency()` pairs the two steps of each cycle by Cycle number and returns coulombic and energy efficiency as fractions, null for a cycle that lacks either step. The run can also save each step's raw curve as its own file, which loads as `ChargeDischarge`.
 
 To require one experiment type, call `read` on its class. It raises `GamryParseError` for any other TAG:
 
@@ -75,8 +67,7 @@ cv.scan_rate, cv.v_range
 
 ### Timestamps
 
-`T` is seconds since the start of the experiment. `timestamps=True` converts it to datetimes using the DATE and TIME
-header fields. In a `CyclicChargeDischarge` summary the converted column is `Time`, the end of each step:
+`T` is seconds since the start of the experiment. `timestamps=True` converts it to datetimes using the DATE and TIME header fields. In a `CyclicChargeDischarge` summary the converted column is `Time`, the end of each step:
 
 ```python
 gp.read("chronoa.dta").curve(timestamps=True)
@@ -84,8 +75,7 @@ gp.read("chronoa.dta").curve(timestamps=True)
 
 ### Decimal commas
 
-`read()` detects files written with a decimal comma (`5,00000E-001`), whatever the locale of the machine reading
-them. To override detection, pass `decimal_comma=True` or `decimal_comma=False`.
+`read()` detects files written with a decimal comma (`5,00000E-001`), whatever the locale of the machine reading them. To override detection, pass `decimal_comma=True` or `decimal_comma=False`.
 
 ### pandas
 
@@ -95,8 +85,7 @@ df = exp.curve(0).to_pandas()  # needs gamry-parser[pandas]
 
 ### Errors
 
-`read()` raises `FileNotFoundError` for a missing file and `GamryParseError` (a `ValueError`) for a file it cannot
-parse, including any file without a `TAG` header line. `curve(i)` raises `IndexError` when `i` is out of range.
+`read()` raises `FileNotFoundError` for a missing file and `GamryParseError` (a `ValueError`) for a file it cannot parse, including any file without a `TAG` header line. `curve(i)` raises `IndexError` when `i` is out of range.
 
 ## Migrating from 0.x
 
@@ -115,8 +104,7 @@ Calling a 0.x constructor raises a `TypeError` that names `read()` as the replac
 
 ## Examples
 
-`python usage.py` reads a cyclic voltammetry file. The notebooks in `demo/` cover chronoamperometry, cyclic
-voltammetry, CV peak detection, and EIS with an equivalent-circuit fit. They run in Jupyter or Google Colab:
+`python usage.py` reads a cyclic voltammetry file. The notebooks in `demo/` cover chronoamperometry, cyclic voltammetry, CV peak detection, and EIS with an equivalent-circuit fit. They run in Jupyter or Google Colab:
 
 ```bash
 uv run --group demo --with jupyterlab jupyter lab demo/
@@ -143,13 +131,11 @@ tests/             pytest suite; fixtures in tests/data/
 demo/              example notebooks
 ```
 
-Propose changes as pull requests against `master`. CI runs ruff and the tests on Python 3.12 to 3.14, and the test
-run fails if total branch coverage drops below 90%.
+Propose changes as pull requests against `master`. CI runs ruff and the tests on Python 3.12 to 3.14, and the test run fails if total branch coverage drops below 90%.
 
 ## Related projects
 
-For equivalent-circuit modeling of EIS data, see [impedance.py](https://github.com/ECSHackWeek/impedance.py) and
-[PyEIS](https://github.com/kbknudsen/PyEIS).
+For equivalent-circuit modeling of EIS data, see [impedance.py](https://github.com/ECSHackWeek/impedance.py) and [PyEIS](https://github.com/kbknudsen/PyEIS).
 
 ## Changelog
 

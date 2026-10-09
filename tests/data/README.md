@@ -1,8 +1,6 @@
 # Test data
 
-`ccd_data.dta` and `ccd_charge_data.dta` come from the [echem](https://github.com/mikegerhardt/echem) R package,
-where they are named `mrgPWRCAPACITY.DTA` and `CHARGE_#3.DTA`. Only the file names have changed. They are used
-under the echem license:
+`ccd_data.dta` and `ccd_charge_data.dta` come from the [echem](https://github.com/mikegerhardt/echem) R package, where they are named `mrgPWRCAPACITY.DTA` and `CHARGE_#3.DTA`. Only the file names have changed. They are used under the echem license:
 
 ```text
 The MIT License (MIT)
