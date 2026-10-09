@@ -144,6 +144,8 @@ def test_cyclic_charge_discharge(data_dir):
     assert ccd.charge_current == 1.25
     assert ccd.sample_time == 5
     assert ccd.stop_reason == "Cycle Limit"
+    assert ccd.header["MAXCHARGETIME"] == gp.VariableAndUnits(value=7200, unit="s")
+    assert ccd.header["DISCHARGESTOPAT1"] == gp.MultiParam(selection=3, value=0.3, option="Voltage < Limit", unit="V")
     assert ccd.curve_count == 1
     curve = ccd.curve()
     assert curve.columns == ["Time", "Type", "Cycle", "Charge", "Duration", "Vstart", "Vend", "Energy"]

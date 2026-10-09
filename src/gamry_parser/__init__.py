@@ -2,7 +2,7 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
-from ._dta import GamryParseError, HeaderValue, TwoParam
+from ._dta import GamryParseError, HeaderValue, MultiParam, TwoParam, VariableAndUnits
 from .experiment import Experiment, GamryParser, read
 from .techniques import (
     VFP600,
@@ -31,9 +31,11 @@ __all__ = [
     "GamryParser",
     "HeaderValue",
     "Impedance",
+    "MultiParam",
     "OpenCircuitPotential",
     "SquareWaveVoltammetry",
     "TwoParam",
+    "VariableAndUnits",
     "__version__",
     "read",
 ]

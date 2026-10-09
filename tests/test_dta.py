@@ -4,7 +4,7 @@ import json
 import polars as pl
 import pytest
 
-from gamry_parser._dta import GamryParseError, TwoParam, parse
+from gamry_parser._dta import GamryParseError, MultiParam, TwoParam, VariableAndUnits, parse
 
 
 def dta(*lines: str) -> bytes:
@@ -31,6 +31,9 @@ def test_header_value_types():
             "STEP\tTOGGLE\tFALSE\tStep",
             "CONDIT\tTWOPARAM\tT\t3.00000E+002\t5.00000E-001\tConditionin&g\tTime(s)\tE(V)",
             "OTHER\tOUTPUT\traw value\tSomething",
+            "MAXTIME\tVARIABLEANDUNITS\t7.20000E+003\ts\t2.00000E+000\thour(s)\tMax Charge Time",
+            "STOPAT1\tMULTIPARAM\t4\t1.30000E+000\tStop At 1\tVoltage > Limit\tV",
+            "SHORT\tMULTIPARAM\t4\t1.30000E+000",
         )
     ).header
     assert header == {
@@ -49,6 +52,9 @@ def test_header_value_types():
         "STEP": False,
         "CONDIT": TwoParam(enable=True, start=300.0, finish=0.5),
         "OTHER": "raw value",
+        "MAXTIME": VariableAndUnits(value=7200.0, unit="s"),
+        "STOPAT1": MultiParam(selection=4, value=1.3, option="Voltage > Limit", unit="V"),
+        "SHORT": "4",
     }
     assert isinstance(header["CYCLES"], int)
     assert isinstance(header["PSTATMODEL"], int)
@@ -59,11 +65,18 @@ def test_header_value_types():
         TwoParam(enable=True, start=1.0, finish=2.0, extra=3.0)
 
 
-def test_two_param_round_trips_through_json():
-    value = TwoParam(enable=True, start=300.0, finish=0.5)
-    encoded = json.dumps({"CONDIT": value}, default=dataclasses.asdict)
-    assert json.loads(encoded) == {"CONDIT": {"enable": True, "start": 300.0, "finish": 0.5}}
-    assert TwoParam(**json.loads(encoded)["CONDIT"]) == value
+@pytest.mark.parametrize(
+    "value",
+    [
+        TwoParam(enable=True, start=300.0, finish=0.5),
+        VariableAndUnits(value=7200.0, unit="s"),
+        MultiParam(selection=4, value=1.3, option="Voltage > Limit", unit="V"),
+    ],
+)
+def test_multi_value_fields_round_trip_through_json(value):
+    encoded = json.dumps({"FIELD": value}, default=dataclasses.asdict)
+    assert json.loads(encoded) == {"FIELD": dataclasses.asdict(value)}
+    assert type(value)(**json.loads(encoded)["FIELD"]) == value
 
 
 def test_notes_are_the_following_lines_joined():
@@ -136,6 +149,17 @@ def test_decimal_comma_detected_from_header():
     ).header
     assert header["EQDELAY"] == 5.0
     assert header["CONDIT"] == TwoParam(enable=False, start=15.0, finish=0.0)
+
+
+@pytest.mark.parametrize(
+    ("line", "expected"),
+    [
+        ("MAXTIME\tVARIABLEANDUNITS\t7,2E+003\ts\t2,0E+000\thour(s)\tMax Time", VariableAndUnits(7200.0, "s")),
+        ("STOPAT1\tMULTIPARAM\t4\t1,3E+000\tStop At 1\tVoltage > Limit\tV", MultiParam(4, 1.3, "Voltage > Limit", "V")),
+    ],
+)
+def test_decimal_comma_detected_from_multi_value_fields(line, expected):
+    assert parse(dta("EXPLAIN", "TAG\tPWR800_CHARGE", line)).header[line.split("\t")[0]] == expected
 
 
 def test_decimal_comma_override():

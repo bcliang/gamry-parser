@@ -36,10 +36,12 @@ exp.curve(0)  # polars DataFrame
 exp.curves  # every curve with every column, including Pt
 ```
 
-Header values are typed from the file's field types: `str`, `float`, `int`, `bool`, or, for `TWOPARAM` fields such as
-`CONDIT`, a frozen `TwoParam` dataclass with `enable`, `start` and `finish`. `header` and `units` are read-only
-mappings; `json.dumps(exp.header, default=dataclasses.asdict)` serializes a header, and `TwoParam(**value)` rebuilds
-a field from the loaded JSON.
+Header values are typed from the file's field types: `str`, `float`, `int`, `bool`, or a frozen dataclass for field
+types that hold several values. `TWOPARAM` fields such as `CONDIT` load as `TwoParam` (`enable`, `start`, `finish`),
+`VARIABLEANDUNITS` fields as `VariableAndUnits` (`value`, `unit`) and `MULTIPARAM` fields as `MultiParam`
+(`selection`, `value`, `option`, `unit`). `header` and `units` are read-only mappings;
+`json.dumps(exp.header, default=dataclasses.asdict)` serializes a header, and `TwoParam(**value)` rebuilds a field
+from the loaded JSON.
 
 `read()` returns the class registered for the file's TAG:
 
