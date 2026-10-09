@@ -115,3 +115,66 @@ class VFP600(Experiment):
         if sample_time is None:
             return frame.with_columns(T=pl.lit(None, dtype=pl.Float64))
         return frame.with_columns(T=pl.int_range(pl.len(), dtype=pl.Int64) * sample_time)
+
+
+class CyclicChargeDischarge(Experiment):
+    """Cyclic charge-discharge summary from the PWR800 software (TAG PWR800_CYCLICCHARGEDISCHARGE).
+
+    The curve has one row per charge or discharge step. Type is 0 for a charge step and 1 for a discharge step.
+    Charge is positive for both step types; Energy is negative for discharge steps.
+    """
+
+    TAGS = frozenset({"PWR800_CYCLICCHARGEDISCHARGE"})
+    COLUMNS = ("Time", "Type", "Cycle", "Charge", "Duration", "Vstart", "Vend", "Energy")
+
+    @property
+    def cycles(self) -> int | None:
+        """Programmed number of charge-discharge cycles."""
+        value = self._float("CYCLES")
+        return None if value is None else int(value)
+
+    @property
+    def capacity(self) -> float | None:
+        """Nominal cell capacity, in A-hr."""
+        return self._float("CAPACITY")
+
+    @property
+    def charge_current(self) -> float | None:
+        """Charge current, in A."""
+        return self._float("CHARGECURRENT")
+
+    @property
+    def sample_time(self) -> float | None:
+        """Sample period, in s."""
+        return self._float("SAMPLETIME")
+
+    @property
+    def stop_reason(self) -> str | None:
+        """Why the run ended (STOPREASON), e.g. "Cycle Limit"."""
+        value = self.header.get("STOPREASON")
+        return value if isinstance(value, str) else None
+
+
+class ChargeDischarge(Experiment):
+    """One charge or discharge step from the PWR800 software (TAG PWR800_CHARGE or PWR800_DISCHARGE).
+
+    A cyclic charge-discharge run can save each step as its own file alongside the summary.
+    """
+
+    TAGS = frozenset({"PWR800_CHARGE", "PWR800_DISCHARGE"})
+    COLUMNS = ("T", "Vf", "Im")
+
+    @property
+    def capacity(self) -> float | None:
+        """Nominal cell capacity, in A-hr."""
+        return self._float("CAPACITY")
+
+    @property
+    def sample_time(self) -> float | None:
+        """Sample period, in s."""
+        return self._float("SAMPLETIME")
+
+    @property
+    def start_time_offset(self) -> float | None:
+        """The STARTTIMEOFFSET field written after the curve, in s."""
+        return self._float("STARTTIMEOFFSET")

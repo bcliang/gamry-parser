@@ -11,6 +11,8 @@ TECHNIQUES = [
     ("ocp_data.dta", gp.OpenCircuitPotential),
     ("squarewave_data.dta", gp.SquareWaveVoltammetry),
     ("vfp600_data.dta", gp.VFP600),
+    ("ccd_data.dta", gp.CyclicChargeDischarge),
+    ("ccd_charge_data.dta", gp.ChargeDischarge),
 ]
 
 
@@ -134,6 +136,39 @@ def test_vfp600(data_dir):
     assert round(curve["Current"][-1] * 1e13) == 5125
 
 
+def test_cyclic_charge_discharge(data_dir):
+    ccd = gp.read(data_dir / "ccd_data.dta")
+    assert ccd.experiment_type == "PWR800_CYCLICCHARGEDISCHARGE"
+    assert ccd.cycles == 50
+    assert ccd.capacity == 1
+    assert ccd.charge_current == 1.25
+    assert ccd.sample_time == 5
+    assert ccd.stop_reason == "Cycle Limit"
+    assert ccd.curve_count == 1
+    curve = ccd.curve()
+    assert curve.columns == ["Time", "Type", "Cycle", "Charge", "Duration", "Vstart", "Vend", "Energy"]
+    assert curve.shape == (100, 8)
+    assert curve.row(0) == (3493, 0, 1, 4362.108, 3492.657, 0.7937095, 1.206959, 3962.024)
+    assert curve.row(-1) == (284885, 1, 50, 3114.31, 2488.698, 0.7620814, 0.3999423, -2055.479)
+    assert curve["Type"].value_counts(sort=True)["count"].to_list() == [50, 50]
+    assert ccd.units["Charge"] == "C"
+    assert ccd.units["Energy"] == "J"
+
+
+def test_charge_discharge(data_dir):
+    step = gp.read(data_dir / "ccd_charge_data.dta")
+    assert step.experiment_type == "PWR800_CHARGE"
+    assert step.capacity == 10
+    assert step.sample_time == 0.1
+    assert step.start_time_offset == 16.83167
+    curve = step.curve()
+    assert curve.columns == ["T", "Vf", "Im"]
+    assert curve.shape == (66, 3)
+    assert curve.row(0) == (0.1, -0.289835, 0.0200063)
+    assert curve["T"][-1] == 6.56833
+    assert step.curve(timestamps=True)["T"][0] == datetime(2015, 11, 12, 11, 16, 43, 100000)
+
+
 def test_vfp600_without_freq_has_null_time(tmp_path):
     path = tmp_path / "vfp.dta"
     path.write_text("VFP600\nTAG\tVFP600\nVFPCURVE\tTABLE\n\tVoltage\tCurrent\n\tV\tA\n\t0.1\t1e-10\n")
@@ -147,6 +182,9 @@ def test_vfp600_without_freq_has_null_time(tmp_path):
         ("CHRONOA", ["sample_time"]),
         ("SQUARE_WAVE", ["step_size", "pulse_size", "pulse_width", "frequency", "v_range", "cycles"]),
         ("VFP600", ["sample_time"]),
+        ("PWR800_CYCLICCHARGEDISCHARGE", ["cycles", "capacity", "charge_current", "sample_time", "stop_reason"]),
+        ("PWR800_CHARGE", ["capacity", "sample_time", "start_time_offset"]),
+        ("PWR800_DISCHARGE", ["capacity", "sample_time", "start_time_offset"]),
     ],
 )
 def test_properties_are_none_when_header_keys_are_missing(tmp_path, tag, properties):

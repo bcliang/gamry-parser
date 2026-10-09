@@ -6,7 +6,9 @@ from ._dta import GamryParseError, HeaderValue, TwoParam
 from .experiment import Experiment, GamryParser, read
 from .techniques import (
     VFP600,
+    ChargeDischarge,
     ChronoAmperometry,
+    CyclicChargeDischarge,
     CyclicVoltammetry,
     Impedance,
     OpenCircuitPotential,
@@ -20,7 +22,9 @@ except PackageNotFoundError:
 
 __all__ = [
     "VFP600",
+    "ChargeDischarge",
     "ChronoAmperometry",
+    "CyclicChargeDischarge",
     "CyclicVoltammetry",
     "Experiment",
     "GamryParseError",
