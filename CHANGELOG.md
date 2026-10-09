@@ -9,6 +9,9 @@ Notable changes to gamry-parser, newest first. The project follows [Semantic Ver
   `CAPACITYCURVE` table. Based on [#52](https://github.com/bcliang/gamry-parser/pull/52) by @bpbrown.
 - `ChargeDischarge` reads the raw charge and discharge step files from the same run.
 
+### Fixed
+- `TOGGLE` header fields written as `TRUE` or `FALSE` load as booleans; `TRUE` used to load as `False`.
+
 ## [1.0.0] - 2026-09-26 [#51](https://github.com/bcliang/gamry-parser/pull/51)
 
 A rewrite. The 0.x API is gone; see the README's migration table.

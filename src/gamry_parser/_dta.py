@@ -49,6 +49,7 @@ _CURVE_KEY = re.compile(r"(^|Z|VFP|EFM|CAPACITY)CURVE")
 _COMMA_NUMBER = re.compile(r"[-+]?\d+,\d+(?:[eE][-+]?\d+)?")
 _DOT_NUMBER = re.compile(r"[-+]?\d+\.\d+(?:[eE][-+]?\d+)?")
 _UNIT_DTYPES: dict[str, type[pl.DataType]] = {"#": pl.Int64, "bits": pl.String}
+_TRUE = frozenset({"T", "TRUE"})
 
 
 def parse(data: bytes, decimal_comma: bool | None = None) -> ParsedFile:
@@ -143,9 +144,9 @@ def _parse_header(lines: list[str], decimal_comma: bool) -> dict[str, HeaderValu
                     parsed = number(value)
                     header[key] = int(parsed) if parsed.is_integer() else parsed
                 case "TOGGLE":
-                    header[key] = value == "T"
+                    header[key] = value in _TRUE
                 case "TWOPARAM":
-                    header[key] = TwoParam(enable=value == "T", start=number(fields[3]), finish=number(fields[4]))
+                    header[key] = TwoParam(enable=value in _TRUE, start=number(fields[3]), finish=number(fields[4]))
                 case "NOTES":
                     header[key] = "\n".join(next(rows, "").strip() for _ in range(int(value)))
                 case _:

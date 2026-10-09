@@ -27,6 +27,8 @@ def test_header_value_types():
             "FOO\tTABLES\tbar\tLabel",
             "STRIP\tTOGGLE\tF\tUsed for Stripping",
             "RUN\tTOGGLE\tT\tRun",
+            "SEQUENCER\tTOGGLE\tTRUE\tRun as Sequence",
+            "STEP\tTOGGLE\tFALSE\tStep",
             "CONDIT\tTWOPARAM\tT\t3.00000E+002\t5.00000E-001\tConditionin&g\tTime(s)\tE(V)",
             "OTHER\tOUTPUT\traw value\tSomething",
         )
@@ -43,6 +45,8 @@ def test_header_value_types():
         "FOO": "bar",
         "STRIP": False,
         "RUN": True,
+        "SEQUENCER": True,
+        "STEP": False,
         "CONDIT": TwoParam(enable=True, start=300.0, finish=0.5),
         "OTHER": "raw value",
     }

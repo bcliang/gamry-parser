@@ -161,6 +161,7 @@ def test_charge_discharge(data_dir):
     assert step.capacity == 10
     assert step.sample_time == 0.1
     assert step.start_time_offset == 16.83167
+    assert step.header["SEQUENCER"] is True
     curve = step.curve()
     assert curve.columns == ["T", "Vf", "Im"]
     assert curve.shape == (66, 3)
