@@ -2,7 +2,7 @@
 
 Notable changes to gamry-parser, newest first. The project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.1.0] - 2026-10-09
 
 ### Added
 - `CyclicChargeDischarge` reads the summary file of a PWR800 cyclic charge-discharge run, whose data sit in a

@@ -1,6 +1,6 @@
 [project]
 name = "gamry-parser"
-version = "1.0.0"
+version = "1.1.0"
 description = "Parse Gamry EXPLAIN (DTA) files into polars DataFrames."
 readme = "README.md"
 license = "MIT"
