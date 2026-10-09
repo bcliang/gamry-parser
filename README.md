@@ -51,11 +51,17 @@ a field from the loaded JSON.
 | `CORPOT` | `OpenCircuitPotential` | T, Vf | |
 | `SQUARE_WAVE` | `SquareWaveVoltammetry` | T, Vfwd, Vrev, Vstep, Ifwd, Irev, Idif | `step_size`, `pulse_size`, `pulse_width`, `frequency`, `v_range`, `cycles` |
 | `VFP600` | `VFP600` | T, Voltage, Current | `sample_time` |
+| `PWR800_CYCLICCHARGEDISCHARGE` | `CyclicChargeDischarge` | Time, Type, Cycle, Charge, Duration, Vstart, Vend, Energy | `cycles`, `capacity`, `charge_current`, `sample_time`, `stop_reason` |
+| `PWR800_CHARGE`, `PWR800_DISCHARGE` | `ChargeDischarge` | T, Vf, Im | `capacity`, `sample_time`, `start_time_offset` |
 | anything else | `Experiment` | all columns | |
 
 Every class also has `ocv` (the EOC header field), `ocv_curve` (the OCVCURVE table, if the file has one) and
 `sample_count` (rows across all curves).
 Properties return `None` when the header field is missing.
+
+A cyclic charge-discharge (CCD) run in Gamry's PWR800 software writes a summary file with one row per step. In it,
+Type is 0 for a charge step and 1 for a discharge step. The run can also save each step's raw curve as its own
+file, which loads as `ChargeDischarge`.
 
 To require one experiment type, call `read` on its class. It raises `GamryParseError` for any other TAG:
 
