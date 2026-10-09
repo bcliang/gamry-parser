@@ -160,6 +160,40 @@ def test_cyclic_charge_discharge(data_dir):
     assert ccd.units["Energy"] == "J"
 
 
+def test_cyclic_charge_discharge_efficiency(data_dir):
+    efficiency = gp.read(data_dir / "ccd_data.dta").efficiency()
+    assert efficiency.columns == ["Cycle", "CoulombicEfficiency", "EnergyEfficiency"]
+    assert efficiency.shape == (50, 3)
+    assert efficiency.row(0) == pytest.approx((1, 4013.866 / 4362.108, 2752.844 / 3962.024))
+    assert efficiency.row(-1) == pytest.approx((50, 3114.31 / 3193.252, 2055.479 / 3110.808))
+    assert efficiency.null_count().row(0) == (0, 0, 0)
+
+
+@pytest.mark.parametrize(
+    ("rows", "expected"),
+    [
+        (["1\t0\t1\t10\t20", "2\t1\t1\t9\t-15", "3\t0\t2\t10\t20"], [(1, 0.9, 0.75), (2, None, None)]),
+        (["1\t1\t1\t9\t-15", "2\t0\t1\t10\t20"], [(1, 0.9, 0.75)]),
+    ],
+    ids=["incomplete-last-cycle", "discharge-first"],
+)
+def test_cyclic_charge_discharge_efficiency_pairs_steps_by_cycle(tmp_path, rows, expected):
+    lines = [
+        "EXPLAIN",
+        "TAG\tPWR800_CYCLICCHARGEDISCHARGE",
+        "CAPACITYCURVE\tTABLE",
+        "\tPt\tType\tCycle\tCharge\tEnergy\tTime\tDuration\tVstart\tVend",
+        "\t#\t#\t#\tC\tJ\ts\ts\tV\tV",
+        *(f"\t{row}\t100\t100\t0.8\t1.2" for row in rows),
+    ]
+    path = tmp_path / "ccd.dta"
+    path.write_text("\n".join(lines) + "\n")
+    efficiency = gp.read(path).efficiency()
+    assert [row[0] for row in efficiency.rows()] == [row[0] for row in expected]
+    for actual, wanted in zip(efficiency.rows(), expected, strict=True):
+        assert actual == pytest.approx(wanted)
+
+
 def test_charge_discharge(data_dir):
     step = gp.read(data_dir / "ccd_charge_data.dta")
     assert step.experiment_type == "PWR800_CHARGE"

@@ -156,6 +156,27 @@ class CyclicChargeDischarge(Experiment):
         value = self.header.get("STOPREASON")
         return value if isinstance(value, str) else None
 
+    def efficiency(self) -> pl.DataFrame:
+        """Coulombic and energy efficiency of each cycle, as fractions.
+
+        A cycle pairs the charge and discharge steps that share its Cycle number. Coulombic efficiency is discharge
+        Charge over charge Charge, and energy efficiency is discharge Energy over charge Energy. A cycle that lacks
+        either step, such as the last cycle of a run that stopped early, has null efficiencies.
+        """
+        steps = self.curve()
+        charge = steps.filter(pl.col("Type") == 0).select("Cycle", q_in="Charge", e_in="Energy")
+        discharge = steps.filter(pl.col("Type") == 1).select("Cycle", q_out="Charge", e_out="Energy")
+        return (
+            steps.select(pl.col("Cycle").unique().sort())
+            .join(charge, on="Cycle", how="left")
+            .join(discharge, on="Cycle", how="left")
+            .select(
+                "Cycle",
+                CoulombicEfficiency=pl.col("q_out") / pl.col("q_in"),
+                EnergyEfficiency=-pl.col("e_out") / pl.col("e_in"),
+            )
+        )
+
 
 class ChargeDischarge(Experiment):
     """One charge or discharge step from the PWR800 software (TAG PWR800_CHARGE or PWR800_DISCHARGE).
