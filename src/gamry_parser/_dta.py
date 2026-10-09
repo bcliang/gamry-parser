@@ -45,7 +45,7 @@ class ParsedFile:
 
 _TABLE_LINE = re.compile(r"^([^\t\n]+)\tTABLE(?:\t[^\n]*)?(?:\n|\Z)", re.MULTILINE)
 _TABLE_END = re.compile(r"\n(?!\t)")
-_CURVE_KEY = re.compile(r"(^|Z|VFP|EFM)CURVE")
+_CURVE_KEY = re.compile(r"(^|Z|VFP|EFM|CAPACITY)CURVE")
 _COMMA_NUMBER = re.compile(r"[-+]?\d+,\d+(?:[eE][-+]?\d+)?")
 _DOT_NUMBER = re.compile(r"[-+]?\d+\.\d+(?:[eE][-+]?\d+)?")
 _UNIT_DTYPES: dict[str, type[pl.DataType]] = {"#": pl.Int64, "bits": pl.String}

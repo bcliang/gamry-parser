@@ -310,6 +310,31 @@ def test_curve_table_cut_off_before_its_units_line_is_skipped():
     assert parsed.units["Vf"] == "V vs. Ref."
 
 
+CAPACITY = ("CAPACITYCURVE\tTABLE", "\tPt\tCycle\tCharge\tDischarge", "\t#\t#\tC\tC")
+
+
+def test_capacity_curve_is_read_as_a_curve():
+    parsed = parse(dta("EXPLAIN", "TAG\tMYSTERY", *CAPACITY, "\t0\t1\t1.5\t1.4", "\t1\t2\t1.4\t1.3"))
+    assert parsed.units == {"Pt": "#", "Cycle": "#", "Charge": "C", "Discharge": "C"}
+    assert parsed.curves[0]["Cycle"].to_list() == [1, 2]
+    assert parsed.curves[0]["Discharge"].to_list() == [1.4, 1.3]
+
+
+def test_decimal_comma_detected_from_capacity_curve_rows():
+    parsed = parse(dta("EXPLAIN", "TAG\tMYSTERY", *CAPACITY, "\t0\t1\t1,5\t1,4"))
+    assert parsed.curves[0]["Charge"].to_list() == [1.5]
+
+
+def test_header_lines_after_curve_rows_end_the_curve():
+    trailer = ("STOPREASON\tLABEL\tVoltage limit\tStop Reason", "STARTTIMEOFFSET\tQUANT\t1.5E+001\tStart Offset (s)")
+    second = ("CURVE2\tTABLE", *CURVE[1:])
+    rows = ("\t0\t0\t0.5\t1e-9\t5\t..", *trailer, *second, "\t0\t15\t0.6\t2e-9\t5\t..", *trailer)
+    parsed = parse(dta("EXPLAIN", "TAG\tMYSTERY", *CURVE, *rows))
+    assert [curve["Vf"].to_list() for curve in parsed.curves] == [[0.5], [0.6]]
+    assert parsed.header["STOPREASON"] == "Voltage limit"
+    assert parsed.header["STARTTIMEOFFSET"] == 15.0
+
+
 def test_unparseable_numeric_cells_become_null():
     parsed = parse(dta("EXPLAIN", "TAG\tCV", *CURVE, "\t0\t0\t0.5\t1.#QNAN\t5\t..", "\t1\t1\t0.6\t2e-9\t5\t.."))
     assert parsed.curves[0]["Im"].dtype == pl.Float64
